@@ -1,3 +1,4 @@
+using ImmatureBackend.Filters;
 using ImmatureBackend.Repositories;
 using ImmatureBackend.Repositories.Interfaces;
 using ImmatureBackend.Services;
@@ -32,7 +33,7 @@ public class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IReplicateRepository, ReplicateRepository>();
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options => { options.Filters.Add<ApiKeyFilter>(); });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddOpenApi();

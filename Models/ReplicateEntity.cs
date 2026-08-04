@@ -1,4 +1,6 @@
-﻿using Supabase.Postgrest.Attributes;
+﻿using ImmatureBackend.Utils;
+using Newtonsoft.Json;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace ImmatureBackend.Models;
@@ -24,7 +26,9 @@ public class ReplicateEntity : BaseModel
 
     [Column("grade")] public string Grade { get; set; } = string.Empty;
 
-    [Column("original_image")] public byte[]? OriginalImage { get; set; }
+    [Column("original_image")]
+    [JsonConverter(typeof(ByteaConverter))]
+    public byte[]? OriginalImage { get; set; }
 
     [Column("review_status")] public string ReviewStatus { get; set; } = "unreviewed";
 }

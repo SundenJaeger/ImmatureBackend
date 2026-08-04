@@ -1,3 +1,5 @@
+using ImmatureBackend.Repositories;
+using ImmatureBackend.Repositories.Interfaces;
 using ImmatureBackend.Services;
 using ImmatureBackend.Services.Interfaces;
 using Supabase;
@@ -28,6 +30,7 @@ public class Program
         builder.Services.AddScoped<IGrainDetector, PlaceholderDetector>();
         builder.Services.AddScoped<ICalculationService, CalculationService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IReplicateRepository, ReplicateRepository>();
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();

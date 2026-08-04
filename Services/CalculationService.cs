@@ -2,7 +2,7 @@
 
 namespace ImmatureBackend.Services;
 
-public class CalculateService : ICalculationService
+public class CalculationService : ICalculationService
 {
     public decimal CalculatePercentage(decimal weight)
     {

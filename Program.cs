@@ -27,6 +27,7 @@ public class Program
         builder.Services.AddSingleton(new Client(supabaseUrl, supabaseKey, supabaseOptions));
         builder.Services.AddScoped<IGrainDetector, PlaceholderDetector>();
         builder.Services.AddScoped<ICalculationService, CalculationService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();

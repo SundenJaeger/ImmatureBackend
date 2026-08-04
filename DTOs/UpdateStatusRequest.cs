@@ -1,8 +1,6 @@
-﻿using ImmatureBackend.Enums;
-
-namespace ImmatureBackend.DTOs;
+﻿namespace ImmatureBackend.DTOs;
 
 public sealed record UpdateStatusRequest
 {
-    public ReviewStatus Status { get; init; }
+    public string Status { get; init; } = string.Empty;
 }

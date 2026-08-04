@@ -1,5 +1,4 @@
-﻿using ImmatureBackend.Enums;
-using Supabase.Postgrest.Attributes;
+﻿using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace ImmatureBackend.Models;
@@ -27,5 +26,5 @@ public class ReplicateEntity : BaseModel
 
     [Column("original_image")] public byte[]? OriginalImage { get; set; }
 
-    [Column("review_status")] public ReviewStatus ReviewStatus { get; set; } = ReviewStatus.Unreviewed;
+    [Column("review_status")] public string ReviewStatus { get; set; } = "unreviewed";
 }

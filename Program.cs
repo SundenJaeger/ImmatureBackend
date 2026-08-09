@@ -27,7 +27,7 @@ public class Program
         var supabaseClient = new Client(supabaseUrl, supabaseKey, supabaseOptions);
         await supabaseClient.InitializeAsync();
 
-        builder.Services.AddSingleton(new Client(supabaseUrl, supabaseKey, supabaseOptions));
+        builder.Services.AddSingleton(supabaseClient);
         builder.Services.AddScoped<IGrainDetector, PlaceholderDetector>();
         builder.Services.AddScoped<ICalculationService, CalculationService>();
         builder.Services.AddScoped<IAuthService, AuthService>();

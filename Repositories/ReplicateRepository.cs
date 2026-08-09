@@ -14,7 +14,11 @@ public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
 
     public async Task<List<ReplicateEntity>> GetAllAsync()
     {
-        var response = await supabaseClient.From<ReplicateEntity>().Get();
+        var response = await supabaseClient
+            .From<ReplicateEntity>()
+            .Select(
+                "id,technician_name,created_at,sample_id,ai_predicted_grains,confirmed_grains,immature_weight,percentage,grade,review_status")
+            .Get();
         return response.Models.ToList();
     }
 

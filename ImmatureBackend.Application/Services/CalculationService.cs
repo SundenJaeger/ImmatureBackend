@@ -1,6 +1,6 @@
-﻿using ImmatureBackend.Services.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
 
-namespace ImmatureBackend.Services;
+namespace ImmatureBackend.Application.Services;
 
 public class CalculationService : ICalculationService
 {

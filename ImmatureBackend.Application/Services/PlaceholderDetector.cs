@@ -1,7 +1,7 @@
-﻿using ImmatureBackend.DTOs;
-using ImmatureBackend.Services.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Application.Responses;
 
-namespace ImmatureBackend.Services;
+namespace ImmatureBackend.Application.Services;
 
 public class PlaceholderDetector : IGrainDetector
 {

@@ -1,6 +1,7 @@
-﻿using ImmatureBackend.Services.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
+using Microsoft.Extensions.Configuration;
 
-namespace ImmatureBackend.Services;
+namespace ImmatureBackend.Application.Services;
 
 public class AuthService(IConfiguration configuration) : IAuthService
 {

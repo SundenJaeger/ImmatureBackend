@@ -1,4 +1,4 @@
-﻿namespace ImmatureBackend.DTOs;
+﻿namespace ImmatureBackend.Application.Requests;
 
 public sealed record UpdateStatusRequest
 {

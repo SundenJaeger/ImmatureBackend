@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace ImmatureBackend.DTOs;
+namespace ImmatureBackend.Application.Requests;
 
 public sealed record PredictRequest
 {

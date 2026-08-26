@@ -1,4 +1,4 @@
-﻿namespace ImmatureBackend.DTOs;
+﻿namespace ImmatureBackend.Application.Responses;
 
 public sealed record PredictResponse
 {

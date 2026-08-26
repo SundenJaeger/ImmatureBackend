@@ -1,4 +1,4 @@
-﻿namespace ImmatureBackend.Services.Interfaces;
+﻿namespace ImmatureBackend.Application.Interfaces;
 
 public interface IAuthService
 {

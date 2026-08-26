@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
-using ImmatureBackend.DTOs;
-using ImmatureBackend.Repositories.Interfaces;
-using ImmatureBackend.Services.Interfaces;
+using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Application.Requests;
+using ImmatureBackend.Application.Responses;
+using ImmatureBackend.Data.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImmatureBackend.Controllers;
+namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]

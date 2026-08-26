@@ -1,10 +1,9 @@
-﻿using ImmatureBackend.Services;
-using ImmatureBackend.Services.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace ImmatureBackend.Filters;
+namespace ImmatureBackend.Api.Filters;
 
 public class ApiKeyFilter(IAuthService authService) : IAsyncAuthorizationFilter
 {

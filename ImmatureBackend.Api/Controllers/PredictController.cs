@@ -1,10 +1,11 @@
-﻿using ImmatureBackend.DTOs;
-using ImmatureBackend.Models;
-using ImmatureBackend.Repositories.Interfaces;
-using ImmatureBackend.Services.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Application.Requests;
+using ImmatureBackend.Application.Responses;
+using ImmatureBackend.Data.Interfaces;
+using ImmatureBackend.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImmatureBackend.Controllers;
+namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]

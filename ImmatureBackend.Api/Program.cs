@@ -1,11 +1,11 @@
-using ImmatureBackend.Filters;
-using ImmatureBackend.Repositories;
-using ImmatureBackend.Repositories.Interfaces;
-using ImmatureBackend.Services;
-using ImmatureBackend.Services.Interfaces;
+using ImmatureBackend.Api.Filters;
+using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Application.Services;
+using ImmatureBackend.Data.Interfaces;
+using ImmatureBackend.Data.Repositories;
 using Supabase;
 
-namespace ImmatureBackend;
+namespace ImmatureBackend.Api;
 
 public class Program
 {

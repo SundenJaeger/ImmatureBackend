@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="ImmatureBackend.csproj" />
+  <Project Path="ImmatureBackend.Resources/ImmatureBackend.Resources.csproj" />
 </Solution>

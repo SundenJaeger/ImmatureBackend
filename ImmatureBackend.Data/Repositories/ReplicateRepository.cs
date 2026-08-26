@@ -1,8 +1,8 @@
-﻿using ImmatureBackend.Models;
-using ImmatureBackend.Repositories.Interfaces;
+﻿using ImmatureBackend.Data.Interfaces;
+using ImmatureBackend.Data.Models;
 using Supabase;
 
-namespace ImmatureBackend.Repositories;
+namespace ImmatureBackend.Data.Repositories;
 
 public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
 {

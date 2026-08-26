@@ -1,9 +1,9 @@
-﻿using ImmatureBackend.Utils;
+﻿using ImmatureBackend.Resources.Utils;
 using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace ImmatureBackend.Models;
+namespace ImmatureBackend.Data.Models;
 
 [Table("replicates")]
 public class ReplicateEntity : BaseModel

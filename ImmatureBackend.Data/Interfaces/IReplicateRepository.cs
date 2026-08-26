@@ -1,6 +1,6 @@
-﻿using ImmatureBackend.Models;
+﻿using ImmatureBackend.Data.Models;
 
-namespace ImmatureBackend.Repositories.Interfaces;
+namespace ImmatureBackend.Data.Interfaces;
 
 public interface IReplicateRepository
 {

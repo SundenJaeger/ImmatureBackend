@@ -33,7 +33,8 @@ public class Program
         builder.Services.AddScoped<ICalculationService, CalculationService>();
         builder.Services.AddScoped<IReplicateRepository, ReplicateRepository>();
         builder.Services.AddScoped<IApiKeyProvider, ApiKeyProvider>();
-
+        builder.Services.AddScoped<IReplicateService, ReplicateService>();
+        
         builder.Services
             .AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
             .AddApiKeyInHeader<ApiKeyProvider>(options =>

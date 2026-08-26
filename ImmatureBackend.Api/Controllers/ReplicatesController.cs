@@ -1,7 +1,5 @@
-﻿using System.Text.Json;
+﻿using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
-using ImmatureBackend.Application.Responses;
-using ImmatureBackend.Data.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,35 +8,22 @@ namespace ImmatureBackend.Api.Controllers;
 [ApiController]
 [Route("api")]
 [Authorize]
-public class ReplicatesController(IReplicateRepository replicateRepository) : ControllerBase
+public class ReplicatesController(IReplicateService replicateService) : ControllerBase
 {
     [HttpGet("replicates")]
     public async Task<IActionResult> GetAll()
     {
-        var entities = await replicateRepository.GetAllAsync();
-        var dtos = entities.Select(e => new ReplicateListItem
-        {
-            Id = e.Id.ToString(),
-            TechnicianName = e.TechnicianName,
-            CreatedAt = e.CreatedAt,
-            SampleId = e.SampleId,
-            AiPredictedGrains = JsonSerializer.Deserialize<List<GrainBox>>(e.AiPredictedGrains) ?? new List<GrainBox>(),
-            ConfirmedGrains = JsonSerializer.Deserialize<List<GrainBox>>(e.ConfirmedGrains) ?? new List<GrainBox>(),
-            ImmatureWeight = e.ImmatureWeight,
-            Percentage = e.Percentage,
-            Grade = e.Grade,
-            ReviewStatus = e.ReviewStatus
-        }).ToList();
+        var entities = await replicateService.GetAllReplicateListItemsAsync();
 
-        return Ok(dtos);
+        return Ok(entities);
     }
 
     [HttpGet("images/{id}")]
     public async Task<IActionResult> GetImage(Guid id)
     {
-        var imageBytes = await replicateRepository.GetImageBytesAsync(id);
+        var imageBytes = await replicateService.GetImage(id);
 
-        if (imageBytes == null || imageBytes.Length == 0)
+        if (imageBytes is null || imageBytes.Length == 0)
         {
             return NotFound(new { detail = "Image not found" });
         }
@@ -49,19 +34,10 @@ public class ReplicatesController(IReplicateRepository replicateRepository) : Co
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
-        if (request.Status != "accepted" && request.Status != "denied")
-        {
-            return BadRequest(new { detail = "Status must be 'accepted' or 'denied'" });
-        }
-
         try
         {
-            var updatedStatus = await replicateRepository.UpdateStatusAsync(id, request.Status);
-            return Ok(new UpdateStatusResponse
-            {
-                Id = id.ToString(),
-                ReviewStatus = updatedStatus
-            });
+            var updatedStatus = await replicateService.UpdateReviewStatus(id, request);
+            return Ok(updatedStatus);
         }
         catch (InvalidOperationException)
         {

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Data.Interfaces;
@@ -10,7 +9,8 @@ namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]
-public class ReplicatesController(IReplicateRepository replicateRepository, IAuthService authService) : ControllerBase
+[Authorize]
+public class ReplicatesController(IReplicateRepository replicateRepository) : ControllerBase
 {
     [HttpGet("replicates")]
     public async Task<IActionResult> GetAll()
@@ -34,18 +34,8 @@ public class ReplicatesController(IReplicateRepository replicateRepository, IAut
     }
 
     [HttpGet("images/{id}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetImage(
-        Guid id,
-        [FromQuery] string? api_key = null,
-        [FromHeader(Name = "X-API-Key")] string? xApiKey = null)
+    public async Task<IActionResult> GetImage(Guid id)
     {
-        var apiKey = xApiKey ?? api_key;
-        if (string.IsNullOrEmpty(apiKey) || !authService.IsValidKey(apiKey))
-        {
-            return Unauthorized(new { detail = "Invalid or missing API Key" });
-        }
-
         var imageBytes = await replicateRepository.GetImageBytesAsync(id);
 
         if (imageBytes == null || imageBytes.Length == 0)

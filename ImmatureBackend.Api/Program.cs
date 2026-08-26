@@ -1,4 +1,5 @@
-using ImmatureBackend.Api.Filters;
+using AspNetCore.Authentication.ApiKey;
+using ImmatureBackend.Api.Authentication;
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Services;
 using ImmatureBackend.Data.Interfaces;
@@ -30,14 +31,22 @@ public class Program
         builder.Services.AddSingleton(supabaseClient);
         builder.Services.AddScoped<IGrainDetector, PlaceholderDetector>();
         builder.Services.AddScoped<ICalculationService, CalculationService>();
-        builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IReplicateRepository, ReplicateRepository>();
+        builder.Services.AddScoped<IApiKeyProvider, ApiKeyProvider>();
 
-        builder.Services.AddControllers(options => { options.Filters.Add<ApiKeyFilter>(); });
+        builder.Services
+            .AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
+            .AddApiKeyInHeader<ApiKeyProvider>(options =>
+            {
+                options.Realm = "Immature Backend API";
+                options.KeyName = "X-API-KEY";
+            });
+        builder.Services.AddAuthorization();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddOpenApi();
         builder.Services.AddProblemDetails();
+        builder.Services.AddControllers();
 
         var app = builder.Build();
 

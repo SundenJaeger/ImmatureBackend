@@ -1,10 +1,4 @@
-using AspNetCore.Authentication.ApiKey;
-using ImmatureBackend.Api.Authentication;
-using ImmatureBackend.Application.Interfaces;
-using ImmatureBackend.Application.Services;
-using ImmatureBackend.Data.Interfaces;
-using ImmatureBackend.Data.Repositories;
-using Supabase;
+using ImmatureBackend.Api.Extensions;
 
 namespace ImmatureBackend.Api;
 
@@ -17,53 +11,17 @@ public class Program
         var config = builder.Configuration;
         config.AddEnvironmentVariables();
 
-        var supabaseUrl = config["SUPABASE_URL"] ?? throw new InvalidOperationException("SUPABASE_URL is not set");
-        var supabaseKey = config["SUPABASE_KEY"] ?? throw new InvalidOperationException("SUPABASE_KEY is not set");
-
-        var supabaseOptions = new SupabaseOptions
-        {
-            AutoConnectRealtime = false
-        };
-
-        var supabaseClient = new Client(supabaseUrl, supabaseKey, supabaseOptions);
-        await supabaseClient.InitializeAsync();
-
-        builder.Services.AddSingleton(supabaseClient);
-        builder.Services.AddScoped<IGrainDetector, PlaceholderDetector>();
-        builder.Services.AddScoped<ICalculationService, CalculationService>();
-        builder.Services.AddScoped<IReplicateRepository, ReplicateRepository>();
-        builder.Services.AddScoped<IApiKeyProvider, ApiKeyProvider>();
-        builder.Services.AddScoped<IReplicateService, ReplicateService>();
-        
         builder.Services
-            .AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
-            .AddApiKeyInHeader<ApiKeyProvider>(options =>
-            {
-                options.Realm = "Immature Backend API";
-                options.KeyName = "X-API-KEY";
-            });
-        builder.Services.AddAuthorization();
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-        builder.Services.AddOpenApi();
-        builder.Services.AddProblemDetails();
-        builder.Services.AddControllers();
+            .AddSupabase(builder.Configuration)
+            .AddApplicationServices()
+            .AddDataServices()
+            .AddApiAuthentication()
+            .AddApiServices();
 
         var app = builder.Build();
 
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
-        app.UseExceptionHandler();
-        app.UseHttpsRedirection();
-        app.UseCookiePolicy();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.MapControllers();
+        app.UseApiPipeline();
+        
         await app.RunAsync();
     }
 }

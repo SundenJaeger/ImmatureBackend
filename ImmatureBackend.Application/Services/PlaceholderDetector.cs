@@ -5,9 +5,11 @@ namespace ImmatureBackend.Application.Services;
 
 public class PlaceholderDetector : IGrainDetector
 {
-    public List<GrainBox> Detect(byte[] imageBytes)
+    private const double ConfidenceThreshold = 0.5;
+
+    public PredictResponse Detect(byte[] imageBytes)
     {
-        return new List<GrainBox>
+        var gb = new List<GrainBox>
         {
             new()
             {
@@ -18,6 +20,16 @@ public class PlaceholderDetector : IGrainDetector
                 Confidence = 0.7,
                 Action = null
             }
+        };
+
+        var filteredGrains = gb
+            .Where(box => box.Confidence is >= ConfidenceThreshold)
+            .ToList();
+
+        return new PredictResponse
+        {
+            Grains = filteredGrains,
+            ImageId = Guid.NewGuid().ToString()
         };
     }
 }

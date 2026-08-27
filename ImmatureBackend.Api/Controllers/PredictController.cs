@@ -19,20 +19,10 @@ public class PredictController(
     {
         using var ms = new MemoryStream();
         await request.Image.CopyToAsync(ms);
-        var imageBytes = ms.ToArray();
+        
+        var allGrains = grainDetector.Detect(ms.ToArray());
 
-        var allGrains = grainDetector.Detect(imageBytes);
-        var filteredGrains = allGrains
-            .Where(box => box.Confidence is >= 0.5)
-            .ToList();
-
-        var imageId = Guid.NewGuid().ToString();
-
-        return Ok(new PredictResponse
-        {
-            ImageId = imageId,
-            Grains = filteredGrains
-        });
+        return Ok(allGrains);
     }
 
     [HttpPost("replicate")]

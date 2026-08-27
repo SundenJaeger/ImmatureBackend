@@ -4,5 +4,5 @@ namespace ImmatureBackend.Application.Interfaces;
 
 public interface IGrainDetector
 {
-    List<GrainBox> Detect(byte[] imageBytes);
+    PredictResponse Detect(byte[] imageBytes);
 }

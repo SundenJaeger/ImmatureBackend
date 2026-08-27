@@ -1,4 +1,6 @@
-﻿namespace ImmatureBackend.Api.Extensions;
+﻿using System.Diagnostics;
+
+namespace ImmatureBackend.Api.Extensions;
 
 public static class ApiExtensions
 {
@@ -9,7 +11,14 @@ public static class ApiExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         services.AddOpenApi();
-        services.AddProblemDetails();
+
+        services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions["traceId"] = Activity.Current?.TraceId.ToHexString();
+            };
+        });
 
         return services;
     }

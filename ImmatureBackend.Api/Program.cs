@@ -18,6 +18,7 @@ public class Program
             .AddApiAuthentication()
             .AddApiServices()
             .AddValidators()
+            .AddExceptionHandlers();
 
         var app = builder.Build();
 

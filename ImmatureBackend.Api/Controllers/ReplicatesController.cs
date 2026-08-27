@@ -10,6 +10,17 @@ namespace ImmatureBackend.Api.Controllers;
 [Authorize]
 public class ReplicatesController(IReplicateService replicateService) : ControllerBase
 {
+    [HttpPost("replicate")]
+    public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
+    {
+        var ms = new MemoryStream();
+        await model.Image.CopyToAsync(ms);
+
+        var result = await replicateService.CreateAsync(model, ms.ToArray());
+
+        return Ok(result);
+    }
+
     [HttpGet("replicates")]
     public async Task<IActionResult> GetAll()
     {

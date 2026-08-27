@@ -2,11 +2,13 @@
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Data.Interfaces;
+using ImmatureBackend.Data.Models;
 using Newtonsoft.Json;
 
 namespace ImmatureBackend.Application.Services;
 
-public class ReplicateService(IReplicateRepository repository) : IReplicateService
+public class ReplicateService(IReplicateRepository repository, ICalculationService calculationService)
+    : IReplicateService
 {
     public async Task<List<ReplicateListItem>> GetAllReplicateListItemsAsync()
     {
@@ -30,7 +32,7 @@ public class ReplicateService(IReplicateRepository repository) : IReplicateServi
     }
 
     public async Task<byte[]?> GetImage(Guid id)
-    { 
+    {
         return await repository.GetImageBytesAsync(id);
     }
 
@@ -47,6 +49,36 @@ public class ReplicateService(IReplicateRepository repository) : IReplicateServi
         {
             Id = id.ToString(),
             ReviewStatus = updatedStatus
+        };
+    }
+
+    public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request, byte[] imageBytes)
+    {
+        var percentage = calculationService.CalculatePercentage(request.Weight);
+        var grade = calculationService.AssignGrade(percentage);
+        
+        var entity = new ReplicateEntity
+        {
+            Id = Guid.NewGuid(),
+            TechnicianName = request.TechnicianName,
+            CreatedAt = DateTime.UtcNow,
+            SampleId = request.SampleId,
+            AiPredictedGrains = request.AiPredictedGrains,
+            ConfirmedGrains = request.ConfirmedGrains,
+            ImmatureWeight = request.Weight,
+            Percentage = percentage,
+            Grade = grade,
+            OriginalImage = imageBytes,
+            ReviewStatus = "unreviewed"
+        };
+
+        var saved = await repository.CreateAsync(entity);
+
+        return new ReplicateResponse
+        {
+            Id = saved.Id.ToString(),
+            Percentage = saved.Percentage,
+            Grade = saved.Grade
         };
     }
 }

@@ -16,7 +16,8 @@ public class Program
             .AddApplicationServices()
             .AddDataServices()
             .AddApiAuthentication()
-            .AddApiServices();
+            .AddApiServices()
+            .AddValidators()
 
         var app = builder.Build();
 

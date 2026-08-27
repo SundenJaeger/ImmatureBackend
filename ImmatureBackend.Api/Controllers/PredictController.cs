@@ -1,11 +1,13 @@
 ﻿using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]
+[Authorize]
 public class PredictController(
     IGrainDetector grainDetector) : ControllerBase
 {

@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using ImmatureBackend.Application.Interfaces;
+﻿using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +9,7 @@ namespace ImmatureBackend.Api.Controllers;
 [Route("api")]
 [Authorize]
 public class ReplicatesController(
-    IReplicateService replicateService,
-    IValidator<UpdateStatusRequest> updateStatusValidator) : ControllerBase
+    IReplicateService replicateService) : ControllerBase
 {
     [HttpPost("replicate")]
     public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
@@ -47,9 +45,7 @@ public class ReplicatesController(
 
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
-    { 
-        await updateStatusValidator.ValidateAndThrowAsync(request);
-        
+    {
         try
         {
             var updatedStatus = await replicateService.UpdateReviewStatus(id, request);

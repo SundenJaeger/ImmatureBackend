@@ -19,14 +19,8 @@ public static class SupabaseExtensions
             AutoConnectRealtime = false
         };
 
-        var client = new Client(
-            supabaseUrl,
-            supabaseKey,
-            options);
-
-        client.InitializeAsync().GetAwaiter().GetResult();
-
-        services.AddSingleton(client);
+        services.AddSingleton<Client>(_ => new Client(supabaseUrl, supabaseKey, options));
+        services.AddHostedService<SupabaseInitializer>();
 
         return services;
     }

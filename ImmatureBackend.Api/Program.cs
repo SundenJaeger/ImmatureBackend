@@ -4,7 +4,7 @@ namespace ImmatureBackend.Api;
 
 public class Program
 {
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +23,7 @@ public class Program
         var app = builder.Build();
 
         app.UseApiPipeline();
-        
-        await app.RunAsync();
+
+        app.Run();
     }
 }

@@ -10,7 +10,6 @@ public static class ApiExtensions
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
-        services.AddOpenApi();
 
         services.AddProblemDetails(options =>
         {

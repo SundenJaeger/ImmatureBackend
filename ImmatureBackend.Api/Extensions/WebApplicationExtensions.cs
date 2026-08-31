@@ -4,15 +4,8 @@ public static class WebApplicationExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
-
         app.UseExceptionHandler();
+
         app.UseHttpsRedirection();
         app.UseCookiePolicy();
 
@@ -20,6 +13,12 @@ public static class WebApplicationExtensions
         app.UseAuthorization();
 
         app.MapControllers();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
 
         return app;
     }

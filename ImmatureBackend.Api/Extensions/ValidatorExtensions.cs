@@ -16,9 +16,7 @@ public static class ValidatorExtensions
         });
 
         services.AddValidatorsFromAssemblyContaining<UpdateStatusRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<PredictRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<ReplicateRequestValidator>();
-
+        
         return services;
     }
 }

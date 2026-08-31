@@ -8,8 +8,8 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ImmatureBackend.Api/ImmatureBackend.Api.csproj", "ImmatureBackend.Api/"]
 COPY ["ImmatureBackend.Application/ImmatureBackend.Application.csproj", "ImmatureBackend.Application/"]
-COPY ["ImmatureBackend.Data/ImmatureBackend.Data.csproj", "ImmatureBackend.Data/"]
-COPY ["ImmatureBackend.Resources/ImmatureBackend.Resources.csproj", "ImmatureBackend.Resources/"]
+COPY ["ImmatureBackend.Domain/ImmatureBackend.Domain.csproj", "ImmatureBackend.Domain/"]
+COPY ["ImmatureBackend.Infrastructure/ImmatureBackend.Infrastructure.csproj", "ImmatureBackend.Infrastructure/"]
 RUN dotnet restore "ImmatureBackend.Api/ImmatureBackend.Api.csproj"
 COPY . .
 WORKDIR "/src/ImmatureBackend.Api"
@@ -22,5 +22,4 @@ RUN dotnet publish "./ImmatureBackend.Api.csproj" -c $BUILD_CONFIGURATION -o /ap
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENV ASPNETCORE_URLS=http://+:${PORT:-8080}
 ENTRYPOINT ["dotnet", "ImmatureBackend.Api.dll"]

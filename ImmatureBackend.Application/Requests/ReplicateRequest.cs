@@ -1,14 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace ImmatureBackend.Application.Requests;
 
 public sealed record ReplicateRequest
 {
-    [Required] public IFormFile Image { get; init; } = null!;
-    [Required] public string TechnicianName { get; init; } = string.Empty;
-    [Required] public string SampleId { get; init; } = string.Empty;
-    [Required] public string AiPredictedGrains { get; init; } = string.Empty;
-    [Required] public string ConfirmedGrains { get; init; } = string.Empty;
-    [Required] public decimal Weight { get; init; }
+    public IFormFile Image { get; init; } = null!;
+    public string TechnicianName { get; init; } = string.Empty;
+    public string SampleId { get; init; } = string.Empty;
+    public string AiPredictedGrains { get; init; } = string.Empty;
+    public string ConfirmedGrains { get; init; } = string.Empty;
+    public decimal? Weight { get; init; }
 }

@@ -53,7 +53,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
 
     public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request, byte[] imageBytes)
     {
-        var percentage = calculationService.CalculatePercentage(request.Weight);
+        var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
         
         var entity = new ReplicateEntity
@@ -64,7 +64,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
             SampleId = request.SampleId,
             AiPredictedGrains = request.AiPredictedGrains,
             ConfirmedGrains = request.ConfirmedGrains,
-            ImmatureWeight = request.Weight,
+            ImmatureWeight = request.Weight!.Value,
             Percentage = percentage,
             Grade = grade,
             OriginalImage = imageBytes,

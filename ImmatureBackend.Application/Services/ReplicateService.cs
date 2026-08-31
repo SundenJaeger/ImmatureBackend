@@ -1,8 +1,7 @@
 ﻿using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
-using ImmatureBackend.Data.Interfaces;
-using ImmatureBackend.Data.Models;
+using ImmatureBackend.Domain.Models;
 using Newtonsoft.Json;
 
 namespace ImmatureBackend.Application.Services;

@@ -10,10 +10,11 @@
       <PackageReference Include="FluentValidation" Version="12.1.1" />
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.12" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.11" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ImmatureBackend.Data\ImmatureBackend.Data.csproj" />
+      <ProjectReference Include="..\ImmatureBackend.Domain\ImmatureBackend.Domain.csproj" />
     </ItemGroup>
 
 </Project>

@@ -18,7 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ImmatureBackend.Application\ImmatureBackend.Application.csproj" />
-      <ProjectReference Include="..\ImmatureBackend.Data\ImmatureBackend.Data.csproj" />
+      <ProjectReference Include="..\ImmatureBackend.Infrastructure\ImmatureBackend.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>

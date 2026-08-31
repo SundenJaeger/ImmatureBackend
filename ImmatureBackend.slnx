@@ -1,6 +1,6 @@
 <Solution>
   <Project Path="ImmatureBackend.Api/ImmatureBackend.Api.csproj" />
   <Project Path="ImmatureBackend.Application/ImmatureBackend.Application.csproj" />
-  <Project Path="ImmatureBackend.Data/ImmatureBackend.Data.csproj" />
-  <Project Path="ImmatureBackend.Resources/ImmatureBackend.Resources.csproj" />
+  <Project Path="ImmatureBackend.Domain/ImmatureBackend.Domain.csproj" />
+  <Project Path="ImmatureBackend.Infrastructure/ImmatureBackend.Infrastructure.csproj" />
 </Solution>

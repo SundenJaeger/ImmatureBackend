@@ -11,7 +11,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ImmatureBackend.Resources\ImmatureBackend.Resources.csproj" />
+      <ProjectReference Include="..\ImmatureBackend.Application\ImmatureBackend.Application.csproj" />
+      <ProjectReference Include="..\ImmatureBackend.Domain\ImmatureBackend.Domain.csproj" />
     </ItemGroup>
 
 </Project>

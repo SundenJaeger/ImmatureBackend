@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace ImmatureBackend.Resources.Utils;
+namespace ImmatureBackend.Domain.Utils;
 
 public class ByteaConverter : JsonConverter<byte[]>
 {

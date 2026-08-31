@@ -1,5 +1,5 @@
-﻿using ImmatureBackend.Data.Interfaces;
-using ImmatureBackend.Data.Repositories;
+﻿using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Infrastructure.Repositories;
 
 namespace ImmatureBackend.Api.Extensions;
 

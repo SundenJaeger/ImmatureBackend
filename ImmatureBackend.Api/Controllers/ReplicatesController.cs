@@ -41,14 +41,8 @@ public class ReplicatesController(
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
-        try
-        {
-            var updatedStatus = await replicateService.UpdateReviewStatus(id, request);
-            return Ok(updatedStatus);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound(new { detail = "Replicate record not found" });
-        }
+        var updatedStatus = await replicateService.UpdateReviewStatus(id, request);
+        
+        return Ok(updatedStatus);
     }
 }

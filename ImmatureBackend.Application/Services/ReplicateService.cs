@@ -45,12 +45,12 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
 
     public async Task<UpdateStatusResponse> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
     {
-        if (request.Status != "accepted" && request.Status != "denied")
-        {
-            throw new InvalidDataException("Status must be 'accepted or 'denied'");
-        }
-
         var updatedStatus = await repository.UpdateStatusAsync(id, request.Status);
+
+        if (updatedStatus is null)
+        {
+            throw new ReplicateNotFoundException("Replicate not found.");
+        }
 
         return new UpdateStatusResponse
         {
@@ -63,7 +63,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
     {
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
-        
+
         var entity = new ReplicateEntity
         {
             Id = Guid.NewGuid(),

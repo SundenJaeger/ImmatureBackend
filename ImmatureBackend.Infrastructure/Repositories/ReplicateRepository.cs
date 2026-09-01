@@ -33,7 +33,7 @@ public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
         return response.Models.FirstOrDefault()?.OriginalImage;
     }
 
-    public async Task<string> UpdateStatusAsync(Guid id, string status)
+    public async Task<string?> UpdateStatusAsync(Guid id, string status)
     {
         var response = await supabaseClient
             .From<ReplicateEntity>()
@@ -41,6 +41,6 @@ public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
             .Set(x => x.ReviewStatus, status)
             .Update();
 
-        return response.Models.First().ReviewStatus;
+        return response.Models.FirstOrDefault()?.ReviewStatus;
     }
 }

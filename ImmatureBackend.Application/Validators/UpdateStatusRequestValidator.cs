@@ -10,6 +10,9 @@ public class UpdateStatusRequestValidator : AbstractValidator<UpdateStatusReques
         RuleLevelCascadeMode = CascadeMode.Stop;
 
         RuleFor(request => request.Status)
-            .NotEmpty().WithMessage("Review Status is required.");
+            .NotEmpty()
+            .WithMessage("Review Status is required.")
+            .Must(s => s is "accepted" or "denied")
+            .WithMessage("Review Status must be 'accepted' or 'denied'.");
     }
 }

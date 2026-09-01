@@ -1,4 +1,5 @@
-﻿using ImmatureBackend.Application.Interfaces;
+﻿using ImmatureBackend.Application.Exceptions;
+using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Domain.Models;
@@ -30,9 +31,16 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
         }).ToList();
     }
 
-    public async Task<byte[]?> GetImage(Guid id)
+    public async Task<byte[]> GetImage(Guid id)
     {
-        return await repository.GetImageBytesAsync(id);
+        var image = await repository.GetImageBytesAsync(id);
+
+        if (image is null || image.Length == 0)
+        {
+            throw new ImageNotFoundException("Image not found.");
+        }
+
+        return image;
     }
 
     public async Task<UpdateStatusResponse> UpdateReviewStatus(Guid id, UpdateStatusRequest request)

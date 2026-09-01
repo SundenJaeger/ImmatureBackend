@@ -35,11 +35,6 @@ public class ReplicatesController(
     {
         var imageBytes = await replicateService.GetImage(id);
 
-        if (imageBytes is null || imageBytes.Length == 0)
-        {
-            return NotFound(new { detail = "Image not found" });
-        }
-
         return File(imageBytes, "image/jpeg");
     }
 

@@ -6,7 +6,8 @@ public static class ApiExtensions
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddNewtonsoftJson();
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();

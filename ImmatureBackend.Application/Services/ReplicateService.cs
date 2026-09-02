@@ -2,6 +2,7 @@
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
+using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
 using Newtonsoft.Json;
 
@@ -45,7 +46,8 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
 
     public async Task<UpdateStatusResponse> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
     {
-        var updatedStatus = await repository.UpdateStatusAsync(id, request.Status);
+        var status = Enum.Parse<ReviewStatus>(request.Status!, true);
+        var updatedStatus = await repository.UpdateStatusAsync(id, status);
 
         if (updatedStatus is null)
         {
@@ -55,7 +57,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
         return new UpdateStatusResponse
         {
             Id = id.ToString(),
-            ReviewStatus = updatedStatus
+            ReviewStatus = updatedStatus.Value
         };
     }
 
@@ -76,7 +78,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
             Percentage = percentage,
             Grade = grade,
             OriginalImage = imageBytes,
-            ReviewStatus = "unreviewed"
+            ReviewStatus = ReviewStatus.Review
         };
 
         var saved = await repository.CreateAsync(entity);

@@ -1,4 +1,5 @@
 ﻿using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
 using Supabase;
 
@@ -33,7 +34,7 @@ public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
         return response.Models.FirstOrDefault()?.OriginalImage;
     }
 
-    public async Task<string?> UpdateStatusAsync(Guid id, string status)
+    public async Task<ReviewStatus?> UpdateStatusAsync(Guid id, ReviewStatus status)
     {
         var response = await supabaseClient
             .From<ReplicateEntity>()

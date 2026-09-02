@@ -1,4 +1,6 @@
-﻿namespace ImmatureBackend.Application.Responses;
+﻿using ImmatureBackend.Domain.Enums;
+
+namespace ImmatureBackend.Application.Responses;
 
 public sealed record ReplicateListItem
 {
@@ -11,5 +13,5 @@ public sealed record ReplicateListItem
     public decimal ImmatureWeight { get; set; }
     public decimal Percentage { get; set; }
     public string Grade { get; set; } = string.Empty;
-    public string ReviewStatus { get; set; } = string.Empty;
+    public ReviewStatus ReviewStatus { get; set; } 
 }

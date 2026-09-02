@@ -1,4 +1,6 @@
-﻿using Supabase;
+﻿using ImmatureBackend.Infrastructure.Configurations.Supabase;
+using Microsoft.Extensions.Options;
+using Supabase;
 
 namespace ImmatureBackend.Api.Extensions;
 
@@ -8,18 +10,27 @@ public static class SupabaseExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var supabaseUrl = configuration["SUPABASE_URL"]
-                          ?? throw new InvalidOperationException("SUPABASE_URL is not set");
+        services
+            .AddOptions<SupabaseSettings>()
+            .Bind(configuration.GetSection(SupabaseSettings.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-        var supabaseKey = configuration["SUPABASE_KEY"]
-                          ?? throw new InvalidOperationException("SUPABASE_KEY is not set");
-
-        var options = new SupabaseOptions
+        services.AddSingleton<Client>(options =>
         {
-            AutoConnectRealtime = false
-        };
+            var settings = options
+                .GetRequiredService<IOptions<SupabaseSettings>>()
+                .Value;
 
-        services.AddSingleton<Client>(_ => new Client(supabaseUrl, supabaseKey, options));
+            return new Client(
+                settings.Url,
+                settings.Key,
+                new SupabaseOptions
+                {
+                    AutoConnectRealtime = true
+                }
+            );
+        });
         services.AddHostedService<SupabaseInitializer>();
 
         return services;

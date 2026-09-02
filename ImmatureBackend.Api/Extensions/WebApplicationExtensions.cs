@@ -9,6 +9,8 @@ public static class WebApplicationExtensions
         app.UseHttpsRedirection();
         app.UseCookiePolicy();
 
+        app.UseCors("immature-dashboard-frontend");
+
         app.UseAuthentication();
         app.UseAuthorization();
 

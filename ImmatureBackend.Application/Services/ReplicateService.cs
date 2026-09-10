@@ -37,7 +37,7 @@ public class ReplicateService(
         }).ToList();
     }
 
-    public async Task<byte[]> GetImage(Guid id)
+    public async Task<(byte[] bytes, string contentType)> GetImage(Guid id)
     {
         var image = await repository.GetImageBytesAsync(id);
 
@@ -46,7 +46,18 @@ public class ReplicateService(
             throw new ImageNotFoundException("Image not found.");
         }
 
-        return image;
+        await using var stream = new MemoryStream(image);
+
+        var inspect = fileFormatInspector.DetermineFileFormat(stream);
+
+        var contentType = inspect switch
+        {
+            Jpeg => "image/jpeg",
+            Png => "image/png",
+            _ => throw new InvalidImageException("Unsupported image format.")
+        };
+
+        return (image, contentType);
     }
 
     public async Task<UpdateStatusResponse> UpdateReviewStatus(Guid id, UpdateStatusRequest request)

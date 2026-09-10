@@ -30,16 +30,16 @@ public class ReplicatesController(
     [HttpGet("images/{id}")]
     public async Task<IActionResult> GetImage(Guid id)
     {
-        var imageBytes = await replicateService.GetImage(id);
+        var (imageBytes, contentType) = await replicateService.GetImage(id);
 
-        return File(imageBytes, "image/jpeg");
+        return File(imageBytes, contentType);
     }
 
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
         var updatedStatus = await replicateService.UpdateReviewStatus(id, request);
-        
+
         return Ok(updatedStatus);
     }
 }

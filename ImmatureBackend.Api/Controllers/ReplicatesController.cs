@@ -14,10 +14,7 @@ public class ReplicatesController(
     [HttpPost("replicate")]
     public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
     {
-        var ms = new MemoryStream();
-        await model.Image.CopyToAsync(ms);
-
-        var result = await replicateService.CreateAsync(model, ms.ToArray());
+        var result = await replicateService.CreateAsync(model);
 
         return Ok(result);
     }

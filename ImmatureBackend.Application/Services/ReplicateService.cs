@@ -1,4 +1,6 @@
-﻿using ImmatureBackend.Application.Exceptions;
+﻿using FileSignatures;
+using FileSignatures.Formats;
+using ImmatureBackend.Application.Exceptions;
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
@@ -8,7 +10,10 @@ using Newtonsoft.Json;
 
 namespace ImmatureBackend.Application.Services;
 
-public class ReplicateService(IReplicateRepository repository, ICalculationService calculationService)
+public class ReplicateService(
+    IReplicateRepository repository,
+    ICalculationService calculationService,
+    IFileFormatInspector fileFormatInspector)
     : IReplicateService
 {
     public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync()
@@ -61,10 +66,27 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
         };
     }
 
-    public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request, byte[] imageBytes)
+    public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request)
     {
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
+
+        var image = request.Image;
+
+        await using var readStream = image.OpenReadStream();
+        using var memStream = new MemoryStream();
+
+        await readStream.CopyToAsync(memStream);
+
+        var inspect = fileFormatInspector.DetermineFileFormat(memStream);
+
+        if (inspect is not (Jpeg or Png))
+        {
+            throw new InvalidImageException("Image can only be JPEG or PNG.");
+        }
+
+        var imageBytes = memStream.ToArray();
+
 
         var entity = new ReplicateEntity
         {

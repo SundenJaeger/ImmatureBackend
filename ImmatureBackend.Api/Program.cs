@@ -12,9 +12,8 @@ public class Program
         config.AddEnvironmentVariables();
 
         builder.Services
-            .AddSupabase(builder.Configuration)
             .AddApplicationServices()
-            .AddDataServices()
+            .AddDataServices(builder.Configuration)
             .AddApiAuthentication()
             .AddApiServices()
             .AddValidators()

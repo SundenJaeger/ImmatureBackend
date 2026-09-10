@@ -11,7 +11,7 @@ namespace ImmatureBackend.Application.Services;
 public class ReplicateService(IReplicateRepository repository, ICalculationService calculationService)
     : IReplicateService
 {
-    public async Task<List<ReplicateListItem>> GetAllReplicateListItemsAsync()
+    public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync()
     {
         var entities = await repository.GetAllAsync();
 
@@ -49,7 +49,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
         var status = Enum.Parse<ReviewStatus>(request.Status!, true);
         var updatedStatus = await repository.UpdateStatusAsync(id, status);
 
-        if (updatedStatus is null)
+        if (!updatedStatus)
         {
             throw new ReplicateNotFoundException("Replicate not found.");
         }
@@ -57,7 +57,7 @@ public class ReplicateService(IReplicateRepository repository, ICalculationServi
         return new UpdateStatusResponse
         {
             Id = id.ToString(),
-            ReviewStatus = updatedStatus.Value
+            ReviewStatus = status
         };
     }
 

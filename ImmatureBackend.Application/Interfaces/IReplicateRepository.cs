@@ -6,7 +6,7 @@ namespace ImmatureBackend.Application.Interfaces;
 public interface IReplicateRepository
 {
     Task<ReplicateEntity> CreateAsync(ReplicateEntity entity);
-    Task<List<ReplicateEntity>> GetAllAsync();
+    Task<IReadOnlyList<ReplicateEntity>> GetAllAsync();
     Task<byte[]?> GetImageBytesAsync(Guid id);
-    Task<ReviewStatus?> UpdateStatusAsync(Guid id, ReviewStatus status);
+    Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status);
 }

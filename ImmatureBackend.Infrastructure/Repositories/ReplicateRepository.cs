@@ -1,47 +1,43 @@
 ﻿using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
-using Supabase;
+using ImmatureBackend.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace ImmatureBackend.Infrastructure.Repositories;
 
-public class ReplicateRepository(Client supabaseClient) : IReplicateRepository
+public class ReplicateRepository(AppDbContext context) : IReplicateRepository
 {
     public async Task<ReplicateEntity> CreateAsync(ReplicateEntity entity)
     {
-        var response = await supabaseClient.From<ReplicateEntity>().Insert(entity);
-        return response.Models.First();
+        context.ReplicateEntities.Add(entity);
+        await context.SaveChangesAsync();
+
+        return entity;
     }
 
-    public async Task<List<ReplicateEntity>> GetAllAsync()
+    public async Task<IReadOnlyList<ReplicateEntity>> GetAllAsync()
     {
-        var response = await supabaseClient
-            .From<ReplicateEntity>()
-            .Select(
-                "id,technician_name,created_at,sample_id,ai_predicted_grains,confirmed_grains,immature_weight,percentage,grade,review_status")
-            .Get();
-        return response.Models.ToList();
+        return await context.ReplicateEntities
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<byte[]?> GetImageBytesAsync(Guid id)
     {
-        var response = await supabaseClient
-            .From<ReplicateEntity>()
-            .Select("original_image")
+        return await context.ReplicateEntities
             .Where(entity => entity.Id == id)
-            .Get();
-
-        return response.Models.FirstOrDefault()?.OriginalImage;
+            .Select(entity => entity.OriginalImage)
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<ReviewStatus?> UpdateStatusAsync(Guid id, ReviewStatus status)
+    public async Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status)
     {
-        var response = await supabaseClient
-            .From<ReplicateEntity>()
-            .Where(x => x.Id == id)
-            .Set(x => x.ReviewStatus, status)
-            .Update();
+        var rowsAffected = await context.ReplicateEntities
+            .Where(entity => entity.Id == id)
+            .ExecuteUpdateAsync(builder => builder
+                .SetProperty(entity => entity.ReviewStatus, status));
 
-        return response.Models.FirstOrDefault()?.ReviewStatus;
+        return rowsAffected > 0;
     }
 }

@@ -46,7 +46,11 @@ public static class ApiExtensions
                 [new OpenApiSecuritySchemeReference("ApiKey", document)] = []
             });
 
-            options.IncludeXmlComments(Assembly.GetExecutingAssembly());
+            var apiXml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, apiXml));
+
+            const string applicationXml = "ImmatureBackend.Application.xml";
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, applicationXml));
         });
 
         services.AddProblemDetails(options =>

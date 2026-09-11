@@ -10,6 +10,8 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
 {
     public void Configure(EntityTypeBuilder<ReplicateEntity> builder)
     {
+        builder.ToTable("replicates");
+
         builder.HasKey(entity => entity.Id);
 
         builder.Property(entity => entity.Id)

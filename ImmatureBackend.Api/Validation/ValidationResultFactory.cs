@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using FluentValidation;
+﻿using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Results;
 
 namespace ImmatureBackend.Api.Validation;
@@ -14,13 +14,10 @@ public sealed class ValidationResultFactory(ILogger<ValidationResultFactory> log
         ValidationProblemDetails validationProblemDetails,
         IDictionary<IValidationContext, ValidationResult> validationResults)
     {
-        var traceId = Activity.Current?.TraceId.ToHexString() ?? context.HttpContext.TraceIdentifier;
-
         logger.LogWarning(
-            "Request validation failed. TraceId: {TraceId}, EndPoint: {Endpoint}, Errors: {@Errors}",
-            traceId,
+            "Request validation failed. EndPoint: {Endpoint}, Errors: {Errors}",
             context.ActionDescriptor.DisplayName,
-            validationProblemDetails.Errors
+            JsonConvert.SerializeObject(validationProblemDetails.Errors)
         );
 
         return Task.FromResult<IActionResult?>(new BadRequestObjectResult(validationProblemDetails));

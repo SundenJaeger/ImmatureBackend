@@ -57,7 +57,7 @@ public static class ApiExtensions
         {
             options.CustomizeProblemDetails = context =>
             {
-                context.ProblemDetails.Extensions["traceId"] = Activity.Current?.TraceId.ToHexString();
+                context.ProblemDetails.Extensions.Remove("traceId");
             };
         });
 

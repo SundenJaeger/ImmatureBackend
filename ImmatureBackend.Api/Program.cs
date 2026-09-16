@@ -7,6 +7,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.AddSentry();
 
         var config = builder.Configuration;
         config.AddEnvironmentVariables();

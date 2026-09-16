@@ -18,6 +18,8 @@ public sealed class GlobalExceptionHandler(
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occured.")
         };
 
+        var eventId = SentrySdk.LastEventId.ToString();
+
         httpContext.Response.StatusCode = statusCode;
 
         await problemDetailsService.WriteAsync(
@@ -27,7 +29,11 @@ public sealed class GlobalExceptionHandler(
                 ProblemDetails = new ProblemDetails
                 {
                     Status = statusCode,
-                    Detail = detail
+                    Detail = detail,
+                    Extensions =
+                    {
+                        ["eventId"] = eventId
+                    }
                 },
                 Exception = exception
             }

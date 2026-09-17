@@ -1,7 +1,8 @@
 ﻿using System.Globalization;
 using FileSignatures;
 using FileSignatures.Formats;
-using ImmatureBackend.Application.Exceptions;
+using FluentResults;
+using ImmatureBackend.Application.Errors;
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
@@ -40,13 +41,17 @@ public class ReplicateService(
         }).ToList();
     }
 
-    public async Task<(byte[] bytes, string contentType)> GetImage(Guid id)
+    public async Task<Result<(byte[] bytes, string contentType)>> GetImage(Guid id)
     {
         var image = await repository.GetImageBytesAsync(id);
 
         if (image is null || image.Length == 0)
         {
-            throw new ImageNotFoundException("Image not found.");
+            logger.LogWarning(
+                "Image not found for replicate {ReplicateId}.",
+                id);
+
+            return Result.Fail(new ImageNotFoundError(id));
         }
 
         await using var stream = new MemoryStream(image);
@@ -57,20 +62,33 @@ public class ReplicateService(
         {
             Jpeg => "image/jpeg",
             Png => "image/png",
-            _ => throw new InvalidImageException("Unsupported image format.")
+            _ => null
         };
+
+        if (contentType is null)
+        {
+            logger.LogError(
+                "Replicate {ReplicateId} contains an unsupported or invalid stored image format.",
+                id);
+
+            return Result.Fail(new InvalidImageError());
+        }
 
         return (image, contentType);
     }
 
-    public async Task<UpdateStatusResponse> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
+    public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
     {
         var status = Enum.Parse<ReviewStatus>(request.Status!, true);
         var updatedStatus = await repository.UpdateStatusAsync(id, status);
 
         if (!updatedStatus)
         {
-            throw new ReplicateNotFoundException("Replicate not found.");
+            logger.LogWarning(
+                "Failed to update review status for replicate {ReplicateId}: replicate not found.",
+                id);
+            
+            return Result.Fail(new ReplicateNotFoundError(id));
         }
 
         logger.LogInformation("Replicate {ReplicateId} review status set to {ReviewStatus}.", id, status);
@@ -82,7 +100,7 @@ public class ReplicateService(
         };
     }
 
-    public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request)
+    public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request)
     {
         logger.LogInformation(
             "Creating replicate for sample {SampleId} by Technician {TechnicianName}",
@@ -103,7 +121,11 @@ public class ReplicateService(
 
         if (inspect is not (Jpeg or Png))
         {
-            throw new InvalidImageException("Image can only be JPEG or PNG.");
+            logger.LogWarning(
+                "Replicate creation rejected for sample {SampleId}: unsupported image format.",
+                request.SampleId);
+
+            return Result.Fail(new InvalidImageError());
         }
 
         var imageBytes = memStream.ToArray();

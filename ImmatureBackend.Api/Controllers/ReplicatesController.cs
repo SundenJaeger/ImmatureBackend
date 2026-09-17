@@ -1,4 +1,5 @@
-﻿using ImmatureBackend.Application.Interfaces;
+﻿using ImmatureBackend.Api.Extensions;
+using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,11 @@ public class ReplicatesController(
     public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
     {
         var result = await replicateService.CreateAsync(model);
+
+        if (result.IsFailed)
+        {
+            return result.ToActionResult();
+        }
 
         return Ok(result);
     }
@@ -65,7 +71,14 @@ public class ReplicatesController(
     [HttpGet("images/{id}")]
     public async Task<IActionResult> GetImage(Guid id)
     {
-        var (imageBytes, contentType) = await replicateService.GetImage(id);
+        var result = await replicateService.GetImage(id);
+
+        if (result.IsFailed)
+        {
+            return result.ToActionResult();
+        }
+
+        var (imageBytes, contentType) = result.Value;
 
         return File(imageBytes, contentType);
     }

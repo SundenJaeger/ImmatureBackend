@@ -1,4 +1,3 @@
-using ImmatureBackend.Application.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,9 +11,6 @@ public sealed class GlobalExceptionHandler(
     {
         var (statusCode, detail) = exception switch
         {
-            ImageNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
-            ReplicateNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
-            InvalidImageException ex => (StatusCodes.Status422UnprocessableEntity, ex.Message),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occured.")
         };
 

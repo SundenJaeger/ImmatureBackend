@@ -1,4 +1,5 @@
-﻿using FileSignatures;
+﻿using System.Globalization;
+using FileSignatures;
 using FileSignatures.Formats;
 using ImmatureBackend.Application.Exceptions;
 using ImmatureBackend.Application.Interfaces;
@@ -6,6 +7,7 @@ using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace ImmatureBackend.Application.Services;
@@ -13,7 +15,8 @@ namespace ImmatureBackend.Application.Services;
 public class ReplicateService(
     IReplicateRepository repository,
     ICalculationService calculationService,
-    IFileFormatInspector fileFormatInspector)
+    IFileFormatInspector fileFormatInspector,
+    ILogger<ReplicateService> logger)
     : IReplicateService
 {
     public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync()
@@ -70,6 +73,8 @@ public class ReplicateService(
             throw new ReplicateNotFoundException("Replicate not found.");
         }
 
+        logger.LogInformation("Replicate {ReplicateId} review status set to {ReviewStatus}.", id, status);
+
         return new UpdateStatusResponse
         {
             Id = id.ToString(),
@@ -79,6 +84,11 @@ public class ReplicateService(
 
     public async Task<ReplicateResponse> CreateAsync(ReplicateRequest request)
     {
+        logger.LogInformation(
+            "Creating replicate for sample {SampleId} by Technician {TechnicianName}",
+            request.SampleId,
+            request.TechnicianName);
+
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
 
@@ -115,6 +125,15 @@ public class ReplicateService(
         };
 
         var saved = await repository.CreateAsync(entity);
+
+        logger.LogInformation(
+            "Replicate {ReplicateId} created for sample {SampleId} by {TechnicianName}: {Weight} g -> {Percentage}% ({Grade}).",
+            saved.Id.ToString(),
+            saved.SampleId,
+            saved.TechnicianName,
+            saved.ImmatureWeight.ToString(CultureInfo.InvariantCulture),
+            saved.Percentage.ToString(CultureInfo.InvariantCulture),
+            saved.Grade);
 
         return new ReplicateResponse
         {

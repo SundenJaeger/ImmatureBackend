@@ -38,7 +38,7 @@ public class ReplicatesController(
             return result.ToActionResult();
         }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     /// <summary>
@@ -99,8 +99,13 @@ public class ReplicatesController(
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
-        var updatedStatus = await replicateService.UpdateReviewStatus(id, request);
+        var result = await replicateService.UpdateReviewStatus(id, request);
 
-        return Ok(updatedStatus);
+        if (result.IsFailed)
+        {
+            return result.ToActionResult();
+        }
+
+        return Ok(result.Value);
     }
 }

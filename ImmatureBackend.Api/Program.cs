@@ -8,6 +8,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddSentry();
+        builder.AddSerilog();
 
         var config = builder.Configuration;
         config.AddEnvironmentVariables();

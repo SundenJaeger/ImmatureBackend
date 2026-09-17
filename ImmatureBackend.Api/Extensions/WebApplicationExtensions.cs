@@ -1,9 +1,13 @@
-﻿namespace ImmatureBackend.Api.Extensions;
+﻿using Serilog;
+
+namespace ImmatureBackend.Api.Extensions;
 
 public static class WebApplicationExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
+        app.UseSerilogRequestLogging();
+        
         app.UseExceptionHandler();
 
         app.UseHttpsRedirection();

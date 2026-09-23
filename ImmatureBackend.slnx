@@ -3,4 +3,5 @@
   <Project Path="ImmatureBackend.Application/ImmatureBackend.Application.csproj" />
   <Project Path="ImmatureBackend.Domain/ImmatureBackend.Domain.csproj" />
   <Project Path="ImmatureBackend.Infrastructure/ImmatureBackend.Infrastructure.csproj" />
+  <Project Path="ImmatureBackend.Test/ImmatureBackend.Test.csproj" />
 </Solution>

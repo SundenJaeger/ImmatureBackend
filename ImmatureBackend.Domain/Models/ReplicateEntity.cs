@@ -15,7 +15,7 @@ public class ReplicateEntity
     public decimal ImmatureWeight { get; set; }
     public decimal Percentage { get; set; }
 
-    public required string Grade { get; set; }
+    public Grade Grade { get; set; }
 
     [JsonConverter(typeof(ByteaConverter))]
     public byte[]? OriginalImage { get; set; }

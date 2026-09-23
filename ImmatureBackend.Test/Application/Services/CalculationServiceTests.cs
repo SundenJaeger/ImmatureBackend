@@ -1,4 +1,5 @@
 using ImmatureBackend.Application.Services;
+using ImmatureBackend.Domain.Enums;
 
 namespace ImmatureBackend.Test.Application.Services;
 
@@ -23,20 +24,20 @@ public class CalculationServiceTests
     }
 
     [Theory]
-    [InlineData(0.0, "Pr")]
-    [InlineData(1.99, "Pr")]
-    [InlineData(2.0, "G1")]
-    [InlineData(3.5, "G1")]
-    [InlineData(5.0, "G1")]
-    [InlineData(5.01, "G2")]
-    [InlineData(7.5, "G2")]
-    [InlineData(10.0, "G2")]
-    [InlineData(10.01, "G3")]
-    [InlineData(12.5, "G3")]
-    [InlineData(15.0, "G3")]
-    [InlineData(15.01, "Below Standard")]
-    [InlineData(100.0, "Below Standard")]
-    public void AssignGrade_ReturnsCorrectGradeAtEachBoundary(decimal percentage, string expectedGrade)
+    [InlineData(0.0, Grade.Pr)]
+    [InlineData(1.99, Grade.Pr)]
+    [InlineData(2.0, Grade.G1)]
+    [InlineData(3.5, Grade.G1)]
+    [InlineData(5.0, Grade.G1)]
+    [InlineData(5.01, Grade.G2)]
+    [InlineData(7.5, Grade.G2)]
+    [InlineData(10.0, Grade.G2)]
+    [InlineData(10.01, Grade.G3)]
+    [InlineData(12.5, Grade.G3)]
+    [InlineData(15.0, Grade.G3)]
+    [InlineData(15.01, Grade.BelowStandard)]
+    [InlineData(100.0, Grade.BelowStandard)]
+    public void AssignGrade_ReturnsCorrectGradeAtEachBoundary(decimal percentage, Grade expectedGrade)
     {
         var result = _service.AssignGrade(percentage);
 
@@ -48,13 +49,13 @@ public class CalculationServiceTests
     {
         var result = _service.AssignGrade(-50m);
 
-        Assert.Equal("Pr", result);
+        Assert.Equal(Grade.Pr, result);
     }
 
     [Fact]
     public void AssignGrade_ExactlyOnUpperBoundary_ShouldNotRoundUpToNextGrade()
     {
-        Assert.Equal("G1", _service.AssignGrade(5.0m));
-        Assert.NotEqual("G2", _service.AssignGrade(5.0m));
+        Assert.Equal(Grade.G1, _service.AssignGrade(5.0m));
+        Assert.NotEqual(Grade.G2, _service.AssignGrade(5.0m));
     }
 }

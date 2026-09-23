@@ -17,7 +17,7 @@ public sealed record ReplicateListItem
     public decimal Percentage { get; set; }
 
     /// <summary>One of "Pr", "G1", "G2", "G3", "Below Standard".</summary>
-    public string Grade { get; set; } = string.Empty;
+    public Grade Grade { get; set; }
 
     public ReviewStatus ReviewStatus { get; set; }
 }

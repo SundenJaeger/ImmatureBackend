@@ -607,3 +607,4 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,visualstudio,aspnetcore
 /appsettings.Development.json
+ImmatureBackend.Api/appsettings.Development.json

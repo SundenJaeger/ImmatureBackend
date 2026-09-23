@@ -1,5 +1,6 @@
 ﻿using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
+using ImmatureBackend.Infrastructure.Persistence.ValueConverters;
 using ImmatureBackend.Infrastructure.Persistence.ValueGenerators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -48,7 +49,9 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .IsRequired();
 
         builder.Property(entity => entity.Grade)
-            .HasColumnName("grade");
+            .HasColumnName("grade")
+            .HasConversion<GradeConverter>()
+            .IsRequired();
 
         builder.Property(entity => entity.OriginalImage)
             .HasColumnName("original_image");

@@ -1,7 +1,9 @@
-﻿namespace ImmatureBackend.Application.Interfaces;
+﻿using ImmatureBackend.Domain.Enums;
+
+namespace ImmatureBackend.Application.Interfaces;
 
 public interface ICalculationService
 {
     decimal CalculatePercentage(decimal weight);
-    string AssignGrade(decimal percentage);
+    Grade AssignGrade(decimal percentage);
 }

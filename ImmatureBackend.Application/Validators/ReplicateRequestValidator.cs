@@ -15,7 +15,8 @@ public class ReplicateRequestValidator : AbstractValidator<ReplicateRequest>
             .Must(image => image!.Length <= 10 * 1024 * 1024).WithMessage("Image cannot be larger than 10 MB.");
 
         RuleFor(request => request.TechnicianName)
-            .NotEmpty().WithMessage("Technician Name is required.");
+            .NotEmpty().WithMessage("Technician Name is required.")
+            .MaximumLength(100).WithMessage("Technician Name cannot exceed 100 characters.");
 
         RuleFor(request => request.SampleId)
             .NotEmpty().WithMessage("Sample ID is required.");

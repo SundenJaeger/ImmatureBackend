@@ -21,7 +21,7 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
 
         builder.Property(entity => entity.TechnicianName)
             .HasColumnName("technician_name")
-            .HasMaxLength(70);
+            .HasMaxLength(100);
 
         builder.Property(entity => entity.CreatedAt)
             .HasColumnName("created_at")

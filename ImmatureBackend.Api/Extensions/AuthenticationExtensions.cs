@@ -1,26 +1,38 @@
-﻿using AspNetCore.Authentication.ApiKey;
-using ImmatureBackend.Api.Authentication;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ImmatureBackend.Api.Extensions;
 
 public static class AuthenticationExtensions
 {
-    private const string ApiRealm = "Immature Backend API";
-    private const string ApiKeyName = "X-API-Key";
-    
-    public static IServiceCollection AddApiAuthentication(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        services.AddScoped<IApiKeyProvider, ApiKeyProvider>();
+        public IServiceCollection AddSupabaseAuthentication(IConfiguration configuration)
+        {
+            var url = configuration["Supabase:Url"]!
+                .TrimEnd();
 
-        services
-            .AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
-            .AddApiKeyInHeader<ApiKeyProvider>(options =>
-            {
-                options.Realm = ApiRealm;
-                options.KeyName = ApiKeyName;
-            });
-        services.AddAuthorization();
+            var issuer = $"{url}/auth/v1";
 
-        return services;
+            services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = issuer;
+                    options.Audience = "authenticated";
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateAudience = true,
+                        ValidAudience = "authenticated",
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true
+                    };
+                });
+
+            return services;
+        }
     }
 }

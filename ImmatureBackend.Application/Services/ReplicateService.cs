@@ -133,9 +133,7 @@ public class ReplicateService(
 
         var entity = new ReplicateEntity
         {
-            Id = Guid.NewGuid(),
             TechnicianName = request.TechnicianName,
-            CreatedAt = DateTime.UtcNow,
             SampleId = request.SampleId,
             AiPredictedGrains = request.AiPredictedGrains,
             ConfirmedGrains = request.ConfirmedGrains,

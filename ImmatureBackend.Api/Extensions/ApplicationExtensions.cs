@@ -12,6 +12,7 @@ public static class ApplicationExtensions
         services.AddScoped<IGrainDetector, PlaceholderDetector>();
         services.AddScoped<ICalculationService, CalculationService>();
         services.AddScoped<IReplicateService, ReplicateService>();
+        services.AddScoped<IImageService, CloudinaryImageService>();
 
         services.AddSingleton<IFileFormatInspector>(_ =>
         {

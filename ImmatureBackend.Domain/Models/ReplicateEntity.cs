@@ -1,5 +1,4 @@
 ﻿using ImmatureBackend.Domain.Enums;
-using ImmatureBackend.Domain.Utils;
 using Newtonsoft.Json;
 
 namespace ImmatureBackend.Domain.Models;

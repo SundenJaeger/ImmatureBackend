@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using FileSignatures;
 using FileSignatures.Formats;
 using FluentResults;
@@ -114,6 +114,9 @@ public class ReplicateService(
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
 
+        var result = await imageService.UploadAsync(request.Image, cancellationToken);
+        var (publicId, secureUrl) = result.Value;
+
         var entity = new ReplicateEntity
         {
             TechnicianName = request.TechnicianName,
@@ -123,7 +126,8 @@ public class ReplicateService(
             ImmatureWeight = request.Weight!.Value,
             Percentage = percentage,
             Grade = grade,
-            OriginalImage = imageBytes,
+            ImagePublicId = publicId,
+            ImageSecureUrl = secureUrl,
             ReviewStatus = ReviewStatus.Review
         };
 

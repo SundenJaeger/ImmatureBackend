@@ -20,9 +20,10 @@ public class ReplicateService(
     ILogger<ReplicateService> logger)
     : IReplicateService
 {
-    public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync()
+    public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync(
+        CancellationToken cancellationToken = default)
     {
-        var entities = await repository.GetAllAsync();
+        var entities = await repository.GetAllAsync(cancellationToken);
 
         return entities.Select(entity => new ReplicateListItem
         {
@@ -41,9 +42,10 @@ public class ReplicateService(
         }).ToList();
     }
 
-    public async Task<Result<(byte[] bytes, string contentType)>> GetImage(Guid id)
+    public async Task<Result<(byte[] bytes, string contentType)>> GetImage(Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var image = await repository.GetImageBytesAsync(id);
+        var image = await repository.GetImageBytesAsync(id, cancellationToken);
 
         if (image is null || image.Length == 0)
         {
@@ -77,17 +79,18 @@ public class ReplicateService(
         return (image, contentType);
     }
 
-    public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
+    public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request,
+        CancellationToken cancellationToken = default)
     {
         var status = Enum.Parse<ReviewStatus>(request.Status!, true);
-        var updatedStatus = await repository.UpdateStatusAsync(id, status);
+        var updatedStatus = await repository.UpdateStatusAsync(id, status, cancellationToken);
 
         if (!updatedStatus)
         {
             logger.LogWarning(
                 "Failed to update review status for replicate {ReplicateId}: replicate not found.",
                 id);
-            
+
             return Result.Fail(new ReplicateNotFoundError(id));
         }
 
@@ -100,7 +103,8 @@ public class ReplicateService(
         };
     }
 
-    public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request)
+    public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation(
             "Creating replicate for sample {SampleId} by Technician {TechnicianName}",
@@ -115,7 +119,7 @@ public class ReplicateService(
         await using var readStream = image.OpenReadStream();
         using var memStream = new MemoryStream();
 
-        await readStream.CopyToAsync(memStream);
+        await readStream.CopyToAsync(memStream, cancellationToken);
 
         var inspect = fileFormatInspector.DetermineFileFormat(memStream);
 
@@ -144,7 +148,7 @@ public class ReplicateService(
             ReviewStatus = ReviewStatus.Review
         };
 
-        var saved = await repository.CreateAsync(entity);
+        var saved = await repository.CreateAsync(entity, cancellationToken);
 
         logger.LogInformation(
             "Replicate {ReplicateId} created for sample {SampleId} by {TechnicianName}: {Weight} g -> {Percentage}% ({Grade}).",

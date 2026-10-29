@@ -29,9 +29,9 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [Authorize(Policy = "Capture")]
     [HttpPost("replicate")]
-    public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
+    public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model, CancellationToken cancellationToken)
     {
-        var result = await replicateService.CreateAsync(model);
+        var result = await replicateService.CreateAsync(model, cancellationToken);
 
         if (result.IsFailed)
         {
@@ -50,9 +50,9 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Authorize(Policy = "Dashboard")]
     [HttpGet("replicates")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var entities = await replicateService.GetAllReplicateListItemsAsync();
+        var entities = await replicateService.GetAllReplicateListItemsAsync(cancellationToken);
 
         return Ok(entities);
     }
@@ -71,9 +71,9 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [Authorize(Policy = "Dashboard")]
     [HttpGet("images/{id}")]
-    public async Task<IActionResult> GetImage(Guid id)
+    public async Task<IActionResult> GetImage(Guid id, CancellationToken cancellationToken)
     {
-        var result = await replicateService.GetImage(id);
+        var result = await replicateService.GetImage(id, cancellationToken);
 
         if (result.IsFailed)
         {
@@ -100,9 +100,10 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = "Dashboard")]
     [HttpPatch("replicates/{id}/status")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request,
+        CancellationToken cancellationToken)
     {
-        var result = await replicateService.UpdateReviewStatus(id, request);
+        var result = await replicateService.UpdateReviewStatus(id, request, cancellationToken);
 
         if (result.IsFailed)
         {

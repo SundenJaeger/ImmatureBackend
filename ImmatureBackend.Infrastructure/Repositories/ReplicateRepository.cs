@@ -8,35 +8,38 @@ namespace ImmatureBackend.Infrastructure.Repositories;
 
 public class ReplicateRepository(AppDbContext context) : IReplicateRepository
 {
-    public async Task<ReplicateEntity> CreateAsync(ReplicateEntity entity)
+    public async Task<ReplicateEntity> CreateAsync(ReplicateEntity entity,
+        CancellationToken cancellationToken = default)
     {
         context.ReplicateEntities.Add(entity);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         return entity;
     }
 
-    public async Task<IReadOnlyList<ReplicateEntity>> GetAllAsync()
+    public async Task<IReadOnlyList<ReplicateEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await context.ReplicateEntities
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<byte[]?> GetImageBytesAsync(Guid id)
+    public async Task<byte[]?> GetImageBytesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.ReplicateEntities
             .Where(entity => entity.Id == id)
             .Select(entity => entity.OriginalImage)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status)
+    public async Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status,
+        CancellationToken cancellationToken = default)
     {
         var rowsAffected = await context.ReplicateEntities
             .Where(entity => entity.Id == id)
             .ExecuteUpdateAsync(builder => builder
-                .SetProperty(entity => entity.ReviewStatus, status));
+                    .SetProperty(entity => entity.ReviewStatus, status),
+                cancellationToken);
 
         return rowsAffected > 0;
     }

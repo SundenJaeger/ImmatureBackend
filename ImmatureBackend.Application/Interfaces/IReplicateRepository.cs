@@ -7,6 +7,5 @@ public interface IReplicateRepository
 {
     Task<ReplicateEntity> CreateAsync(ReplicateEntity entity, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ReplicateEntity>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<byte[]?> GetImageBytesAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status, CancellationToken cancellationToken = default);
 }

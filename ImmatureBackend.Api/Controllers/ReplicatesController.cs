@@ -58,34 +58,6 @@ public class ReplicatesController(
     }
 
     /// <summary>
-    /// Returns the original JPEG/PNG image bytes for a replicate.
-    /// </summary>
-    /// <param name="id">The replicate's id.</param>
-    /// <response code="200">Raw image bytes.</response>
-    /// <response code="401">Missing or invalid X-API-Key header.</response>
-    /// <response code="404">No replicate (or no stored image) with that id.</response>
-    /// <response code="422">The stored bytes aren't a JPEG or PNG image.</response>
-    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "image/jpeg", "image/png")]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    [Authorize(Policy = "Dashboard")]
-    [HttpGet("images/{id}")]
-    public async Task<IActionResult> GetImage(Guid id, CancellationToken cancellationToken)
-    {
-        var result = await replicateService.GetImage(id, cancellationToken);
-
-        if (result.IsFailed)
-        {
-            return result.ToActionResult();
-        }
-
-        var (imageBytes, contentType) = result.Value;
-
-        return File(imageBytes, contentType);
-    }
-
-    /// <summary>
     /// Updates a replicate's review status (e.g. after the dashboard user accepts or rejects it).
     /// </summary>
     /// <param name="id">The replicate's id.</param>

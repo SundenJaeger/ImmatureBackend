@@ -24,14 +24,6 @@ public class ReplicateRepository(AppDbContext context) : IReplicateRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<byte[]?> GetImageBytesAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await context.ReplicateEntities
-            .Where(entity => entity.Id == id)
-            .Select(entity => entity.OriginalImage)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-
     public async Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status,
         CancellationToken cancellationToken = default)
     {

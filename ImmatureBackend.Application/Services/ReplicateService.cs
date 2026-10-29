@@ -114,27 +114,6 @@ public class ReplicateService(
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
 
-        var image = request.Image;
-
-        await using var readStream = image.OpenReadStream();
-        using var memStream = new MemoryStream();
-
-        await readStream.CopyToAsync(memStream, cancellationToken);
-
-        var inspect = fileFormatInspector.DetermineFileFormat(memStream);
-
-        if (inspect is not (Jpeg or Png))
-        {
-            logger.LogWarning(
-                "Replicate creation rejected for sample {SampleId}: unsupported image format.",
-                request.SampleId);
-
-            return Result.Fail(new InvalidImageError());
-        }
-
-        var imageBytes = memStream.ToArray();
-
-
         var entity = new ReplicateEntity
         {
             TechnicianName = request.TechnicianName,

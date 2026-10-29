@@ -20,6 +20,10 @@ public sealed record ReplicateListItem
     public Grade Grade { get; set; }
 
     public ReviewStatus ReviewStatus { get; set; }
+    
+    /// <summary>Cloudinary public id of the uploaded sample image.</summary>
     public string ImagePublicId { get; set; } = string.Empty;
+    
+    /// <summary>HTTPS URL of the sample image, loadable directly (no auth header needed).</summary>
     public string ImageSecureUrl { get; set; } = string.Empty;
 }

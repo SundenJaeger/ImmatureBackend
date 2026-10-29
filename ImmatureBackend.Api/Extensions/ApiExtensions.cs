@@ -30,20 +30,22 @@ public static class ApiExtensions
                 Title = "Immature Backend API",
                 Version = "v1",
                 Description = "Grain detection and replicate review API used by the Android capture app " +
-                              "and the review dashboard. Every endpoint requires an X-API-Key header."
+                              "and the review dashboard. Every endpoint requires a Supabase access token " +
+                              "in the Authorization header (Bearer <token>). Capture endpoints accept any " +
+                              "signed-in user; dashboard endpoints require the 'dashboard' app role."
             });
 
-            options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Name = "X-Api-Key",
-                Type = SecuritySchemeType.ApiKey,
-                In = ParameterLocation.Header,
-                Description = "The shared key issued to the Android and Dashboard clients."
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Supabase access token. Paste the token only, without the 'Bearer ' prefix."
             });
 
             options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("ApiKey", document)] = []
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
 
             var apiXml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";

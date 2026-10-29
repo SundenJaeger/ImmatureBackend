@@ -78,6 +78,17 @@ public class ReplicateService(
         var grade = calculationService.AssignGrade(percentage);
 
         var result = await imageService.UploadAsync(request.Image, cancellationToken);
+        if (result.IsFailed)
+        {
+            logger.LogWarning(
+                "Replicate creation aborted for sample {SampleId}: image upload failed. {Errors}",
+                request.SampleId,
+                string.Join("; ", result.Errors.Select(e => e.Message))
+            );
+
+            return result.ToResult<ReplicateResponse>();
+        }
+
         var (publicId, secureUrl) = result.Value;
 
         var entity = new ReplicateEntity

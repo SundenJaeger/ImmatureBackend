@@ -8,7 +8,7 @@ namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]
-[Authorize]
+[Authorize(Policy = "Capture")]
 public class PredictController(
     IGrainDetector grainDetector) : ControllerBase
 {

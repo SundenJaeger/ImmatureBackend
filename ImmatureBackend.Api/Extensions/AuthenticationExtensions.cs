@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ImmatureBackend.Api.Extensions;
@@ -30,6 +31,34 @@ public static class AuthenticationExtensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true
                     };
+                });
+
+            services
+                .AddAuthorization(options =>
+                {
+                    options.AddPolicy("Capture", policy => policy.RequireAuthenticatedUser());
+
+                    options.AddPolicy("Dashboard", policy => policy
+                        .RequireAuthenticatedUser()
+                        .RequireAssertion(context =>
+                        {
+                            var anon = context.User.FindFirst("is_anonymous")?.Value;
+                            if (string.Equals(anon, "true", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return false;
+                            }
+
+                            var metadata = context.User.FindFirst("app_metadata")?.Value;
+                            if (string.IsNullOrEmpty(metadata))
+                            {
+                                return false;
+                            }
+
+                            using var doc = JsonDocument.Parse(metadata);
+
+                            return doc.RootElement.TryGetProperty("app_role", out var role) &&
+                                   role.GetString() == "dashboard";
+                        }));
                 });
 
             return services;

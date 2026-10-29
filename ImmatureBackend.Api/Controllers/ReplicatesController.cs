@@ -9,7 +9,6 @@ namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]
-[Authorize]
 public class ReplicatesController(
     IReplicateService replicateService) : ControllerBase
 {
@@ -28,6 +27,7 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Authorize(Policy = "Capture")]
     [HttpPost("replicate")]
     public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model)
     {
@@ -48,6 +48,7 @@ public class ReplicatesController(
     /// <response code="401">Missing or invalid X-API-Key header.</response>
     [ProducesResponseType(typeof(IReadOnlyList<ReplicateListItem>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [Authorize(Policy = "Dashboard")]
     [HttpGet("replicates")]
     public async Task<IActionResult> GetAll()
     {
@@ -68,6 +69,7 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Authorize(Policy = "Dashboard")]
     [HttpGet("images/{id}")]
     public async Task<IActionResult> GetImage(Guid id)
     {
@@ -96,6 +98,7 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "Dashboard")]
     [HttpPatch("replicates/{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {

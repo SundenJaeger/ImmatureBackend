@@ -20,4 +20,6 @@ public sealed record ReplicateListItem
     public Grade Grade { get; set; }
 
     public ReviewStatus ReviewStatus { get; set; }
+    public string ImagePublicId { get; set; } = string.Empty;
+    public string ImageSecureUrl { get; set; } = string.Empty;
 }

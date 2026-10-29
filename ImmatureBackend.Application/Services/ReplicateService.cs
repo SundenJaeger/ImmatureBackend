@@ -36,7 +36,9 @@ public class ReplicateService(
             ImmatureWeight = entity.ImmatureWeight,
             Percentage = entity.Percentage,
             Grade = entity.Grade,
-            ReviewStatus = entity.ReviewStatus
+            ReviewStatus = entity.ReviewStatus,
+            ImagePublicId = entity.ImagePublicId,
+            ImageSecureUrl = entity.ImageSecureUrl
         }).ToList();
     }
 

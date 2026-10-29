@@ -2,4 +2,4 @@
 
 namespace ImmatureBackend.Application.Errors;
 
-public sealed class InvalidImageError() : Error("Image can only be JPEG or PNG.");
+public sealed class InvalidImageError(string message = "Image can only be JPEG or PNG") : Error(message);

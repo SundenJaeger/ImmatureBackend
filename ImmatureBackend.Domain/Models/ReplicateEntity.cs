@@ -1,5 +1,4 @@
 ﻿using ImmatureBackend.Domain.Enums;
-using ImmatureBackend.Domain.Utils;
 using Newtonsoft.Json;
 
 namespace ImmatureBackend.Domain.Models;
@@ -14,11 +13,8 @@ public class ReplicateEntity
     public required string ConfirmedGrains { get; set; }
     public decimal ImmatureWeight { get; set; }
     public decimal Percentage { get; set; }
-
     public Grade Grade { get; set; }
-
-    [JsonConverter(typeof(ByteaConverter))]
-    public byte[]? OriginalImage { get; set; }
-
+    public required string ImagePublicId { get; set; }
+    public required string ImageSecureUrl { get; set; }
     public ReviewStatus ReviewStatus { get; set; }
 }

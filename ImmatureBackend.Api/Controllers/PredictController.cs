@@ -8,7 +8,7 @@ namespace ImmatureBackend.Api.Controllers;
 
 [ApiController]
 [Route("api")]
-[Authorize]
+[Authorize(Policy = "Capture")]
 public class PredictController(
     IGrainDetector grainDetector) : ControllerBase
 {
@@ -21,9 +21,9 @@ public class PredictController(
     /// </remarks>
     /// <response code="200">Detected grain boxes for the image.</response>
     /// <response code="400">A required field is missing, or the image is empty/over 10 MB.</response>
-    /// <response code="401">Missing or invalid X-API-Key header.</response>
+    /// <response code="401">Missing, expired or invalid bearer token.</response>
     [ProducesResponseType(typeof(PredictResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [HttpPost("predict")]
     public async Task<IActionResult> Predict([FromForm] PredictRequest request)

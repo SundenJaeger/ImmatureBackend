@@ -53,8 +53,13 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasConversion<GradeConverter>()
             .IsRequired();
 
-        builder.Property(entity => entity.OriginalImage)
-            .HasColumnName("original_image");
+        builder.Property(entity => entity.ImagePublicId)
+            .HasColumnName("image_public_id")
+            .IsRequired();
+
+        builder.Property(entity => entity.ImageSecureUrl)
+            .HasColumnName("image_secure_url")
+            .IsRequired();
 
         builder.Property(entity => entity.ReviewStatus)
             .HasColumnName("review_status")

@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using FileSignatures;
-using FileSignatures.Formats;
 using FluentResults;
 using ImmatureBackend.Application.Errors;
 using ImmatureBackend.Application.Interfaces;
@@ -16,13 +14,14 @@ namespace ImmatureBackend.Application.Services;
 public class ReplicateService(
     IReplicateRepository repository,
     ICalculationService calculationService,
-    IFileFormatInspector fileFormatInspector,
+    IImageService imageService,
     ILogger<ReplicateService> logger)
     : IReplicateService
 {
-    public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync()
+    public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync(
+        CancellationToken cancellationToken = default)
     {
-        var entities = await repository.GetAllAsync();
+        var entities = await repository.GetAllAsync(cancellationToken);
 
         return entities.Select(entity => new ReplicateListItem
         {
@@ -37,57 +36,24 @@ public class ReplicateService(
             ImmatureWeight = entity.ImmatureWeight,
             Percentage = entity.Percentage,
             Grade = entity.Grade,
-            ReviewStatus = entity.ReviewStatus
+            ReviewStatus = entity.ReviewStatus,
+            ImagePublicId = entity.ImagePublicId,
+            ImageSecureUrl = entity.ImageSecureUrl
         }).ToList();
     }
 
-    public async Task<Result<(byte[] bytes, string contentType)>> GetImage(Guid id)
-    {
-        var image = await repository.GetImageBytesAsync(id);
-
-        if (image is null || image.Length == 0)
-        {
-            logger.LogWarning(
-                "Image not found for replicate {ReplicateId}.",
-                id);
-
-            return Result.Fail(new ImageNotFoundError(id));
-        }
-
-        await using var stream = new MemoryStream(image);
-
-        var inspect = fileFormatInspector.DetermineFileFormat(stream);
-
-        var contentType = inspect switch
-        {
-            Jpeg => "image/jpeg",
-            Png => "image/png",
-            _ => null
-        };
-
-        if (contentType is null)
-        {
-            logger.LogError(
-                "Replicate {ReplicateId} contains an unsupported or invalid stored image format.",
-                id);
-
-            return Result.Fail(new InvalidImageError());
-        }
-
-        return (image, contentType);
-    }
-
-    public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request)
+    public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request,
+        CancellationToken cancellationToken = default)
     {
         var status = Enum.Parse<ReviewStatus>(request.Status!, true);
-        var updatedStatus = await repository.UpdateStatusAsync(id, status);
+        var updatedStatus = await repository.UpdateStatusAsync(id, status, cancellationToken);
 
         if (!updatedStatus)
         {
             logger.LogWarning(
                 "Failed to update review status for replicate {ReplicateId}: replicate not found.",
                 id);
-            
+
             return Result.Fail(new ReplicateNotFoundError(id));
         }
 
@@ -100,7 +66,8 @@ public class ReplicateService(
         };
     }
 
-    public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request)
+    public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation(
             "Creating replicate for sample {SampleId} by Technician {TechnicianName}",
@@ -110,26 +77,19 @@ public class ReplicateService(
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
 
-        var image = request.Image;
-
-        await using var readStream = image.OpenReadStream();
-        using var memStream = new MemoryStream();
-
-        await readStream.CopyToAsync(memStream);
-
-        var inspect = fileFormatInspector.DetermineFileFormat(memStream);
-
-        if (inspect is not (Jpeg or Png))
+        var result = await imageService.UploadAsync(request.Image, cancellationToken);
+        if (result.IsFailed)
         {
             logger.LogWarning(
-                "Replicate creation rejected for sample {SampleId}: unsupported image format.",
-                request.SampleId);
+                "Replicate creation aborted for sample {SampleId}: image upload failed. {Errors}",
+                request.SampleId,
+                string.Join("; ", result.Errors.Select(e => e.Message))
+            );
 
-            return Result.Fail(new InvalidImageError());
+            return result.ToResult<ReplicateResponse>();
         }
 
-        var imageBytes = memStream.ToArray();
-
+        var (publicId, secureUrl) = result.Value;
 
         var entity = new ReplicateEntity
         {
@@ -140,11 +100,12 @@ public class ReplicateService(
             ImmatureWeight = request.Weight!.Value,
             Percentage = percentage,
             Grade = grade,
-            OriginalImage = imageBytes,
+            ImagePublicId = publicId,
+            ImageSecureUrl = secureUrl,
             ReviewStatus = ReviewStatus.Review
         };
 
-        var saved = await repository.CreateAsync(entity);
+        var saved = await repository.CreateAsync(entity, cancellationToken);
 
         logger.LogInformation(
             "Replicate {ReplicateId} created for sample {SampleId} by {TechnicianName}: {Weight} g -> {Percentage}% ({Grade}).",

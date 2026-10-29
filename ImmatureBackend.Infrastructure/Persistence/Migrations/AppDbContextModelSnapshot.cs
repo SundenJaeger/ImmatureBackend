@@ -50,14 +50,20 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("grade");
 
+                    b.Property<string>("ImagePublicId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_public_id");
+
+                    b.Property<string>("ImageSecureUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_secure_url");
+
                     b.Property<decimal>("ImmatureWeight")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("immature_weight");
-
-                    b.Property<byte[]>("OriginalImage")
-                        .HasColumnType("bytea")
-                        .HasColumnName("original_image");
 
                     b.Property<decimal>("Percentage")
                         .HasPrecision(5, 2)

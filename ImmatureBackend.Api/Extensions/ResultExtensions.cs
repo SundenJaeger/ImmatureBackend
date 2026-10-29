@@ -1,5 +1,6 @@
 ﻿using FluentResults;
 using ImmatureBackend.Application.Errors;
+using ImmatureBackend.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImmatureBackend.Api.Extensions;
@@ -16,13 +17,13 @@ public static class ResultExtensions
             }
 
             var error = result.Errors.First();
+            var body = new ErrorResponse { Message = error.Message };
 
             return error switch
             {
-                ImageNotFoundError or ReplicateNotFoundError => new NotFoundObjectResult(
-                    new { message = error.Message }),
-                InvalidImageError => new UnprocessableEntityObjectResult(new { message = error.Message }),
-                _ => new BadRequestObjectResult(new { message = error.Message })
+                ImageNotFoundError or ReplicateNotFoundError => new NotFoundObjectResult(body),
+                InvalidImageError => new UnprocessableEntityObjectResult(body),
+                _ => new BadRequestObjectResult(body)
             };
         }
     }

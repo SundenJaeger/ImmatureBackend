@@ -16,8 +16,9 @@ public class Program
         builder.Services
             .AddApplicationServices()
             .AddDataServices(builder.Configuration)
-            .AddApiAuthentication()
+            .AddSupabaseAuthentication(builder.Configuration)
             .AddApiServices()
+            .AddCloudinary(builder.Configuration)
             .AddValidators()
             .AddExceptionHandlers();
 

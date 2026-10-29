@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
 using ImmatureBackend.Application.Errors;
 using ImmatureBackend.Application.Interfaces;
@@ -7,12 +8,10 @@ using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Application.Services;
 using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using FileSignatures;
-using FileSignatures.Formats;
-using Microsoft.AspNetCore.Http.Internal;
 
 namespace ImmatureBackend.Test.Application.Services;
 
@@ -20,7 +19,7 @@ public class ReplicateServiceTests
 {
     private readonly Mock<IReplicateRepository> _repository = new();
     private readonly Mock<ICalculationService> _calculationService = new();
-    private readonly Mock<IFileFormatInspector> _fileFormatInspector = new();
+    private readonly Mock<IImageService> _imageService = new();
     private readonly Mock<ILogger<ReplicateService>> _logger = new();
 
     private readonly ReplicateService _service;
@@ -30,8 +29,24 @@ public class ReplicateServiceTests
         _service = new ReplicateService(
             _repository.Object,
             _calculationService.Object,
-            _fileFormatInspector.Object,
+            _imageService.Object,
             _logger.Object);
+    }
+
+    private static ReplicateRequest CreateRequest()
+    {
+        var imageBytes = new byte[] { 1, 2, 3 };
+        var formFile = new FormFile(new MemoryStream(imageBytes), 0, imageBytes.Length, "Image", "image.jpg");
+
+        return new ReplicateRequest
+        {
+            Image = formFile,
+            TechnicianName = "Tech1",
+            SampleId = "S1",
+            AiPredictedGrains = "[]",
+            ConfirmedGrains = "[]",
+            Weight = 10m
+        };
     }
 
     [Fact]
@@ -50,11 +65,13 @@ public class ReplicateServiceTests
                 ImmatureWeight = 10m,
                 Percentage = 33.33m,
                 Grade = Grade.G1,
+                ImagePublicId = "immature/images/abc123",
+                ImageSecureUrl = "https://res.cloudinary.com/demo/image/upload/abc123.jpg",
                 ReviewStatus = ReviewStatus.Review
             }
         };
 
-        _repository.Setup(r => r.GetAllAsync()).ReturnsAsync(entities);
+        _repository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
 
         var result = await _service.GetAllReplicateListItemsAsync();
 
@@ -67,55 +84,10 @@ public class ReplicateServiceTests
         item.Percentage.Should().Be(33.33m);
         item.Grade.Should().Be(Grade.G1);
         item.ReviewStatus.Should().Be(ReviewStatus.Review);
+        item.ImagePublicId.Should().Be("immature/images/abc123");
+        item.ImageSecureUrl.Should().Be("https://res.cloudinary.com/demo/image/upload/abc123.jpg");
         item.AiPredictedGrains.Should().HaveCount(1);
         item.ConfirmedGrains.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public async Task GetImage_ValidImage_ReturnsBytesAndContentType()
-    {
-        var id = Guid.NewGuid();
-        var imageBytes = new byte[] { 1, 2, 3 };
-        _repository.Setup(r => r.GetImageBytesAsync(id)).ReturnsAsync(imageBytes);
-
-        _fileFormatInspector
-            .Setup(i => i.DetermineFileFormat(It.IsAny<Stream>()))
-            .Returns(new Jpeg());
-
-        var result = await _service.GetImage(id);
-
-        result.Should().BeSuccess();
-        result.Value.bytes.Should().BeEquivalentTo(imageBytes);
-        result.Value.contentType.Should().Be("image/jpeg");
-    }
-
-    [Fact]
-    public async Task GetImage_NullOrEmptyBytes_ReturnsImageNotFoundError()
-    {
-        var id = Guid.NewGuid();
-        _repository.Setup(r => r.GetImageBytesAsync(id)).ReturnsAsync((byte[]?)null);
-
-        var result = await _service.GetImage(id);
-
-        result.Should().BeFailure();
-        result.Errors.Should().ContainSingle(e => e is ImageNotFoundError);
-    }
-
-    [Fact]
-    public async Task GetImage_UnsupportedFormat_ReturnsInvalidImageError()
-    {
-        var id = Guid.NewGuid();
-        var imageBytes = new byte[] { 1, 2, 3 };
-        _repository.Setup(r => r.GetImageBytesAsync(id)).ReturnsAsync(imageBytes);
-
-        _fileFormatInspector
-            .Setup(i => i.DetermineFileFormat(It.IsAny<Stream>()))
-            .Returns(new Pdf());
-
-        var result = await _service.GetImage(id);
-
-        result.Should().BeFailure();
-        result.Errors.Should().ContainSingle(e => e is InvalidImageError);
     }
 
     [Fact]
@@ -123,7 +95,9 @@ public class ReplicateServiceTests
     {
         var id = Guid.NewGuid();
         var request = new UpdateStatusRequest { Status = "Review" };
-        _repository.Setup(r => r.UpdateStatusAsync(id, ReviewStatus.Review)).ReturnsAsync(true);
+        _repository
+            .Setup(r => r.UpdateStatusAsync(id, ReviewStatus.Review, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var result = await _service.UpdateReviewStatus(id, request);
 
@@ -137,7 +111,9 @@ public class ReplicateServiceTests
     {
         var id = Guid.NewGuid();
         var request = new UpdateStatusRequest { Status = "Review" };
-        _repository.Setup(r => r.UpdateStatusAsync(id, ReviewStatus.Review)).ReturnsAsync(false);
+        _repository
+            .Setup(r => r.UpdateStatusAsync(id, ReviewStatus.Review, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         var result = await _service.UpdateReviewStatus(id, request);
 
@@ -148,26 +124,14 @@ public class ReplicateServiceTests
     [Fact]
     public async Task CreateAsync_ValidRequest_ReturnsReplicateResponse()
     {
-        var imageBytes = new byte[] { 1, 2, 3 };
-        var imageStream = new MemoryStream(imageBytes);
-        var formFile = new FormFile(imageStream, 0, imageBytes.Length, "Image", "image.jpg");
-
-        var request = new ReplicateRequest
-        {
-            Image = formFile,
-            TechnicianName = "Tech1",
-            SampleId = "S1",
-            AiPredictedGrains = "[]",
-            ConfirmedGrains = "[]",
-            Weight = 10m
-        };
+        var request = CreateRequest();
 
         _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
         _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
 
-        _fileFormatInspector
-            .Setup(i => i.DetermineFileFormat(It.IsAny<Stream>()))
-            .Returns(new Jpeg());
+        _imageService
+            .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
 
         var savedEntity = new ReplicateEntity
         {
@@ -179,9 +143,13 @@ public class ReplicateServiceTests
             Grade = Grade.G1,
             AiPredictedGrains = "[]",
             ConfirmedGrains = "[]",
+            ImagePublicId = "public-id",
+            ImageSecureUrl = "https://cdn.example/image.jpg",
             ReviewStatus = ReviewStatus.Review
         };
-        _repository.Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>())).ReturnsAsync(savedEntity);
+        _repository
+            .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(savedEntity);
 
         var result = await _service.CreateAsync(request);
 
@@ -189,32 +157,32 @@ public class ReplicateServiceTests
         result.Value.Id.Should().Be(savedEntity.Id.ToString());
         result.Value.Percentage.Should().Be(33.33m);
         result.Value.Grade.Should().Be(Grade.G1);
+        
+        _repository.Verify(r => r.CreateAsync(
+            It.Is<ReplicateEntity>(e =>
+                e.ImagePublicId == "public-id" &&
+                e.ImageSecureUrl == "https://cdn.example/image.jpg"),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_UnsupportedImageFormat_ReturnsInvalidImageError()
+    public async Task CreateAsync_ImageUploadFails_ReturnsFailureAndDoesNotSave()
     {
-        var imageBytes = new byte[] { 1, 2, 3 };
-        var imageStream = new MemoryStream(imageBytes);
-        var formFile = new FormFile(imageStream, 0, imageBytes.Length, "Image", "image.txt");
+        var request = CreateRequest();
 
-        var request = new ReplicateRequest
-        {
-            Image = formFile,
-            TechnicianName = "Tech1",
-            SampleId = "S1",
-            AiPredictedGrains = "[]",
-            ConfirmedGrains = "[]",
-            Weight = 10m
-        };
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
+        _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
 
-        _fileFormatInspector
-            .Setup(i => i.DetermineFileFormat(It.IsAny<Stream>()))
-            .Returns(new Pdf());
+        _imageService
+            .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail<(string, string)>(new InvalidImageError()));
 
         var result = await _service.CreateAsync(request);
 
         result.Should().BeFailure();
         result.Errors.Should().ContainSingle(e => e is InvalidImageError);
+        _repository.Verify(
+            r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

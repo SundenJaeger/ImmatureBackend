@@ -8,6 +8,7 @@ using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ImmatureBackend.Application.Services;
 
@@ -15,31 +16,41 @@ public class ReplicateService(
     IReplicateRepository repository,
     ICalculationService calculationService,
     IImageService imageService,
+    IFusionCache cache,
     ILogger<ReplicateService> logger)
     : IReplicateService
 {
+    private const string AllReplicatesCacheKey = "replicates:all";
+
     public async Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync(
         CancellationToken cancellationToken = default)
     {
-        var entities = await repository.GetAllAsync(cancellationToken);
+        return await cache.GetOrSetAsync<IReadOnlyList<ReplicateListItem>>(
+            AllReplicatesCacheKey,
+            async (_, token) =>
+            {
+                var entities = await repository.GetAllAsync(token);
 
-        return entities.Select(entity => new ReplicateListItem
-        {
-            Id = entity.Id.ToString(),
-            TechnicianName = entity.TechnicianName,
-            CreatedAt = entity.CreatedAt,
-            SampleId = entity.SampleId,
-            AiPredictedGrains = JsonConvert.DeserializeObject<List<GrainBox>>(entity.AiPredictedGrains) ??
-                                new List<GrainBox>(),
-            ConfirmedGrains = JsonConvert.DeserializeObject<List<GrainBox>>(entity.ConfirmedGrains) ??
-                              new List<GrainBox>(),
-            ImmatureWeight = entity.ImmatureWeight,
-            Percentage = entity.Percentage,
-            Grade = entity.Grade,
-            ReviewStatus = entity.ReviewStatus,
-            ImagePublicId = entity.ImagePublicId,
-            ImageSecureUrl = entity.ImageSecureUrl
-        }).ToList();
+                return entities.Select(entity => new ReplicateListItem
+                {
+                    Id = entity.Id.ToString(),
+                    TechnicianName = entity.TechnicianName,
+                    CreatedAt = entity.CreatedAt,
+                    SampleId = entity.SampleId,
+                    AiPredictedGrains = JsonConvert.DeserializeObject<List<GrainBox>>(entity.AiPredictedGrains) ??
+                                        new List<GrainBox>(),
+                    ConfirmedGrains = JsonConvert.DeserializeObject<List<GrainBox>>(entity.ConfirmedGrains) ??
+                                      new List<GrainBox>(),
+                    ImmatureWeight = entity.ImmatureWeight,
+                    Percentage = entity.Percentage,
+                    Grade = entity.Grade,
+                    ReviewStatus = entity.ReviewStatus,
+                    ImagePublicId = entity.ImagePublicId,
+                    ImageSecureUrl = entity.ImageSecureUrl
+                }).ToList();
+            },
+            token: cancellationToken
+        );
     }
 
     public async Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request,
@@ -56,6 +67,8 @@ public class ReplicateService(
 
             return Result.Fail(new ReplicateNotFoundError(id));
         }
+        
+        await cache.RemoveAsync(AllReplicatesCacheKey, token: cancellationToken);
 
         logger.LogInformation("Replicate {ReplicateId} review status set to {ReviewStatus}.", id, status);
 
@@ -106,6 +119,8 @@ public class ReplicateService(
         };
 
         var saved = await repository.CreateAsync(entity, cancellationToken);
+        
+        await cache.RemoveAsync(AllReplicatesCacheKey, token: cancellationToken);
 
         logger.LogInformation(
             "Replicate {ReplicateId} created for sample {SampleId} by {TechnicianName}: {Weight} g -> {Percentage}% ({Grade}).",

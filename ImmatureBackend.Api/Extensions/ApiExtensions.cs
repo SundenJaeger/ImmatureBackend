@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.OpenApi;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ImmatureBackend.Api.Extensions;
 
@@ -21,6 +22,13 @@ public static class ApiExtensions
                     .AllowAnyHeader();
             });
         });
+
+        services
+            .AddFusionCache()
+            .WithDefaultEntryOptions(new FusionCacheEntryOptions
+            {
+                Duration = TimeSpan.FromMinutes(5)
+            });
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>

@@ -12,15 +12,18 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ImmatureBackend.Test.Application.Services;
 
-public class ReplicateServiceTests
+public class ReplicateServiceTests : IDisposable
 {
     private readonly Mock<IReplicateRepository> _repository = new();
     private readonly Mock<ICalculationService> _calculationService = new();
     private readonly Mock<IImageService> _imageService = new();
     private readonly Mock<ILogger<ReplicateService>> _logger = new();
+
+    private readonly FusionCache _cache = new(new FusionCacheOptions());
 
     private readonly ReplicateService _service;
 
@@ -30,7 +33,13 @@ public class ReplicateServiceTests
             _repository.Object,
             _calculationService.Object,
             _imageService.Object,
+            _cache,
             _logger.Object);
+    }
+
+    public void Dispose()
+    {
+        _cache.Dispose();
     }
 
     private static ReplicateRequest CreateRequest()
@@ -157,7 +166,7 @@ public class ReplicateServiceTests
         result.Value.Id.Should().Be(savedEntity.Id.ToString());
         result.Value.Percentage.Should().Be(33.33m);
         result.Value.Grade.Should().Be(Grade.G1);
-        
+
         _repository.Verify(r => r.CreateAsync(
             It.Is<ReplicateEntity>(e =>
                 e.ImagePublicId == "public-id" &&
@@ -184,5 +193,68 @@ public class ReplicateServiceTests
         _repository.Verify(
             r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task GetAllReplicateListItemsAsync_CalledTwice_HitsRepositoryOnce()
+    {
+        _repository
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ReplicateEntity>());
+
+        await _service.GetAllReplicateListItemsAsync();
+        await _service.GetAllReplicateListItemsAsync();
+
+        _repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateReviewStatus_Success_InvalidatesListCache()
+    {
+        var id = Guid.NewGuid();
+        _repository
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ReplicateEntity>());
+        _repository
+            .Setup(r => r.UpdateStatusAsync(id, ReviewStatus.Review, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        await _service.GetAllReplicateListItemsAsync();
+        await _service.UpdateReviewStatus(id, new UpdateStatusRequest { Status = "Review" });
+        await _service.GetAllReplicateListItemsAsync();
+
+        _repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task CreateAsync_Success_InvalidatesListCache()
+    {
+        var request = CreateRequest();
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
+        _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
+        _imageService
+            .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
+        _repository
+            .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReplicateEntity
+            {
+                Id = Guid.NewGuid(),
+                TechnicianName = "Tech1",
+                SampleId = "S1",
+                AiPredictedGrains = "[]",
+                ConfirmedGrains = "[]",
+                ImagePublicId = "public-id",
+                ImageSecureUrl = "https://cdn.example/image.jpg"
+            });
+        _repository
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ReplicateEntity>());
+
+        await _service.GetAllReplicateListItemsAsync();
+        await _service.CreateAsync(request);
+        await _service.GetAllReplicateListItemsAsync();
+
+        _repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 }

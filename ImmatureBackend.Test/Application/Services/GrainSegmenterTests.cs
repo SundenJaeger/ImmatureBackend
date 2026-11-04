@@ -1,4 +1,5 @@
 using ImmatureBackend.Application.Services;
+using SkiaSharp;
 
 namespace ImmatureBackend.Test.Application.Services;
 
@@ -6,28 +7,23 @@ public class GrainSegmenterTests
 {
     private const int Size = 200;
 
-    private static byte[] Canvas((byte R, byte G, byte B) background)
+    private static SKColor[] Canvas((byte R, byte G, byte B) background)
     {
-        var rgb = new byte[Size * Size * 3];
-        for (var i = 0; i < Size * Size; i++)
-        {
-            rgb[i * 3] = background.R;
-            rgb[i * 3 + 1] = background.G;
-            rgb[i * 3 + 2] = background.B;
-        }
+        var color = new SKColor(background.R, background.G, background.B);
 
-        return rgb;
+        return Enumerable.Repeat(color, Size * Size).ToArray();
     }
 
-    private static void Rect(byte[] rgb, int x, int y, int w, int h, (byte R, byte G, byte B) color)
+    private static void Rect(SKColor[] pixels, int x, int y, int w, int h, (byte R, byte G, byte B) color)
     {
+        var skColor = new SKColor(color.R, color.G, color.B);
+
         for (var j = y; j < y + h; j++)
-        for (var i = x; i < x + w; i++)
         {
-            var o = (j * Size + i) * 3;
-            rgb[o] = color.R;
-            rgb[o + 1] = color.G;
-            rgb[o + 2] = color.B;
+            for (var i = x; i < x + w; i++)
+            {
+                pixels[j * Size + i] = skColor;
+            }
         }
     }
 

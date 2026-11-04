@@ -9,7 +9,14 @@ public static class ApplicationExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<IGrainDetector, PlaceholderDetector>();
+        services.AddScoped<IGrainDetector>(provider =>
+        {
+            var config = provider.GetRequiredService<IConfiguration>();
+            var modelPath = config["GrainDetector:ModelPath"] ??
+                            Path.Combine(AppContext.BaseDirectory, "Models", "granular_efficientnet_b0.onnx");
+
+            return new OnnxGrainDetector(modelPath, provider.GetRequiredService<ILogger<OnnxGrainDetector>>());
+        });
         services.AddScoped<ICalculationService, CalculationService>();
         services.AddScoped<IReplicateService, ReplicateService>();
         services.AddScoped<IImageService, CloudinaryImageService>();

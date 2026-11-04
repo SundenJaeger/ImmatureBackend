@@ -34,6 +34,11 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <None Remove="Models\granular_efficientnet_b0.onnx" />
+      <Content Include="Models\granular_efficientnet_b0.onnx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

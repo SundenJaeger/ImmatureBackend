@@ -12,7 +12,7 @@ public sealed class OnnxGrainDetector : IGrainDetector, IDisposable
     private const double ConfidenceThreshold = 0.5;
     private const int ImmatureClass = 0;
     private const int InputSize = 160;
-    private const int BatchSize = 16;
+    private const int BatchSize = 4;
     private const int Channels = 3;
     private const int TensorImageSize = Channels * InputSize * InputSize;
 
@@ -41,11 +41,14 @@ public sealed class OnnxGrainDetector : IGrainDetector, IDisposable
 
         using var options = new SessionOptions
         {
-            IntraOpNumThreads = Math.Min(4, Environment.ProcessorCount),
+            IntraOpNumThreads = 1,
             InterOpNumThreads = 1,
             ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
-            GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL
+            GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
+            EnableCpuMemArena = false,
+            EnableMemoryPattern = false
         };
+        options.AddSessionConfigEntry("session.intra_op.allow_spinning", "0");
 
         _session = new InferenceSession(modelPath, options);
 
@@ -134,7 +137,11 @@ public sealed class OnnxGrainDetector : IGrainDetector, IDisposable
 
             for (var i = 0; i < count; i++)
             {
-                FillTensor(input, i, pixels, imageWidth, segments[offset + i]);
+                FillTensor(
+                    _inputBuffer.AsSpan(i * TensorImageSize, TensorImageSize),
+                    pixels,
+                    imageWidth,
+                    segments[offset + i]);
             }
 
             var inputs = new[]
@@ -154,65 +161,66 @@ public sealed class OnnxGrainDetector : IGrainDetector, IDisposable
 
         return result;
     }
-
-    private static void FillTensor(DenseTensor<float> tensor, int index, SKColor[] pixels, int imageWidth,
-        GrainSegment segment)
+    
+    private static void FillTensor(Span<float> destination, SKColor[] pixels, int imageWidth, GrainSegment segment)
     {
-        var side = Math.Max(segment.Width, segment.Height);
+        const int plane = InputSize * InputSize;
 
+        var side = Math.Max(segment.Width, segment.Height);
         var offsetX = (side - segment.Width) / 2;
         var offsetY = (side - segment.Height) / 2;
+        var scale = side / (float)InputSize;
+        var last = side - 1;
 
-        var info = new SKImageInfo(
-            side,
-            side,
-            SKColorType.Rgba8888,
-            SKAlphaType.Opaque
-        );
-
-        using var squareBitmap = new SKBitmap(info);
-
-        squareBitmap.Erase(SKColors.Black);
-
-        for (var y = 0; y < segment.Height; y++)
-        {
-            var sourceRow = (segment.Y + y) * imageWidth;
-            var maskRow = y * segment.Width;
-            var destinationY = offsetY + y;
-
-            for (var x = 0; x < segment.Width; x++)
-            {
-                if (!segment.Mask[maskRow + x])
-                {
-                    continue;
-                }
-
-                var sourcePixel = pixels[sourceRow + segment.X + x];
-
-                squareBitmap.SetPixel(offsetX + x, destinationY, sourcePixel);
-            }
-        }
-
-        using var resized = squareBitmap.Resize(
-                                new SKImageInfo(InputSize, InputSize, SKColorType.Rgba8888, SKAlphaType.Opaque),
-                                new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear))
-                            ?? throw new InvalidOperationException("Grain crop could not be resized.");
-
-        var resizedPixels = resized.Pixels;
-        
         for (var y = 0; y < InputSize; y++)
         {
-            var rowOffset = y * InputSize;
+            var sourceY = Math.Clamp((y + 0.5f) * scale - 0.5f, 0f, last);
+            var y0 = (int)sourceY;
+            var y1 = Math.Min(y0 + 1, last);
+            var fy = sourceY - y0;
 
             for (var x = 0; x < InputSize; x++)
             {
-                var pixel = resizedPixels[rowOffset + x];
-                
-                tensor[index, 0, y, x] = (pixel.Red / 255f - Mean[0]) / Std[0];
-                tensor[index, 1, y, x] = (pixel.Green / 255f - Mean[1]) / Std[1];
-                tensor[index, 2, y, x] = (pixel.Blue / 255f - Mean[2]) / Std[2];
+                var sourceX = Math.Clamp((x + 0.5f) * scale - 0.5f, 0f, last);
+                var x0 = (int)sourceX;
+                var x1 = Math.Min(x0 + 1, last);
+                var fx = sourceX - x0;
+
+                var p00 = MaskedPixel(pixels, imageWidth, segment, offsetX, offsetY, x0, y0);
+                var p10 = MaskedPixel(pixels, imageWidth, segment, offsetX, offsetY, x1, y0);
+                var p01 = MaskedPixel(pixels, imageWidth, segment, offsetX, offsetY, x0, y1);
+                var p11 = MaskedPixel(pixels, imageWidth, segment, offsetX, offsetY, x1, y1);
+
+                var w00 = (1 - fx) * (1 - fy);
+                var w10 = fx * (1 - fy);
+                var w01 = (1 - fx) * fy;
+                var w11 = fx * fy;
+
+                var red = p00.Red * w00 + p10.Red * w10 + p01.Red * w01 + p11.Red * w11;
+                var green = p00.Green * w00 + p10.Green * w10 + p01.Green * w01 + p11.Green * w11;
+                var blue = p00.Blue * w00 + p10.Blue * w10 + p01.Blue * w01 + p11.Blue * w11;
+
+                var index = y * InputSize + x;
+                destination[index] = (red / 255f - Mean[0]) / Std[0];
+                destination[plane + index] = (green / 255f - Mean[1]) / Std[1];
+                destination[2 * plane + index] = (blue / 255f - Mean[2]) / Std[2];
             }
         }
+    }
+    
+    private static SKColor MaskedPixel(SKColor[] pixels, int imageWidth, GrainSegment segment,
+        int offsetX, int offsetY, int x, int y)
+    {
+        var gx = x - offsetX;
+        var gy = y - offsetY;
+
+        if (gx < 0 || gx >= segment.Width || gy < 0 || gy >= segment.Height ||
+            !segment.Mask[gy * segment.Width + gx])
+        {
+            return default;
+        }
+
+        return pixels[(segment.Y + gy) * imageWidth + segment.X + gx];
     }
 
     public void Dispose()

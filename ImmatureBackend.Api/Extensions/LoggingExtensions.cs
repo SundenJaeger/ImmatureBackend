@@ -11,7 +11,7 @@ public static class LoggingExtensions
             builder.WebHost.UseSentry(options =>
             {
                 options.Dsn = builder.Configuration["Sentry:Dsn"];
-                options.TracesSampleRate = 1.0;
+                options.TracesSampleRate = 0.1;
                 options.EnableLogs = true;
             });
 

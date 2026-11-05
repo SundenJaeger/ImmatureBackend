@@ -1,0 +1,40 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+
+  pull_request:
+    branches: [ "master", "dev" ]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{vars.DOTNET_VERSION}}
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --no-restore --configuration Release --verbosity normal

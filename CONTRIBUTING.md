@@ -12,7 +12,10 @@ Set the following environment variables (or use user secrets).
 
 | Variable                     | Description                                         |
 |------------------------------|-----------------------------------------------------|
-| `API_KEY`                    | Key clients send in the `X-API-Key` header          |
+| `Cloudinary__ApiKey`         | Cloudinary API key used to authenticate requests to the image service |
+| `Cloudinary__ApiSecret`      | Cloudinary API secret used for secure API authentication and request signing |
+| `Cloudinary__Cloudname`      | Name of the Cloudinary cloud account used for image storage and management |
+| `Supabase__Url`              | Supabase project URL used to validate authentication token issuers |
 | `Database__ConnectionString` | PostgreSQL connection string                        |
 | `Sentry__Dsn`                | Sentry DSN for error reporting                      |
 | `Swagger__Enabled`           | Set to `true` to expose Swagger outside Development |
@@ -46,5 +49,5 @@ docker run -p 8080:8080 -e API_KEY=your-key -e Database__ConnectionString="<conn
 
 # Pull Requests
 
-Tests run automatically on pushes to `master` and `dev`, and on pull requests to `master`. Please make sure
+Tests run automatically on pushes to `master` and `dev`, and on pull requests to `master` and `dev`. Please make sure
 `dotnet test` passes before opening a pull request.

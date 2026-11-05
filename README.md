@@ -16,7 +16,8 @@ them to a review dashboard. For each replicate it computes the immature percenta
 
 > [!NOTE]
 > This backend uses [Sentry](https://sentry.io) for error tracking and performance monitoring. Unhandled exceptions, error-level logs, and request traces may be sent to the Sentry project configured through `Sentry__Dsn`. Leave the DSN unset if you do not want any data sent.
-
+>
+> Image storage and management are handled by [Cloudinary](https://cloudinary.com) through the backend's image service. Uploaded grain sample images are stored in Cloudinary rather than directly in the backend or PostgreSQL database. Configure `Cloudinary__ApiKey`, `Cloudinary__ApiSecret`, and `Cloudinary__Cloudname` to enable image operations.
 
 # Grading
 
@@ -47,3 +48,6 @@ percentage = (weight / 30) * 100
 - [**Sentry .NET**](https://github.com/getsentry/sentry-dotnet) by Functional Software, Inc. under [**MIT License**](https://github.com/getsentry/sentry-dotnet/blob/main/LICENSE)
 - [**Swashbuckle.AspNetCore**](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) by Richard Morris under [**MIT License**](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/LICENSE)
 - [**Npgsql EF Core Provider**](https://github.com/npgsql/efcore.pg) by Npgsql under [**PostgreSQL License**](https://github.com/npgsql/efcore.pg/blob/main/LICENSE)
+- [**SkiaSharp**](https://github.com/mono/SkiaSharp) by Xamarin, Inc. and Microsoft Corporation under [**MIT License**](https://github.com/mono/SkiaSharp/blob/main/LICENSE.txt)
+- [**FusionCache**](https://github.com/ZiggyCreatures/FusionCache) by Jody Donetti under [**MIT License**](https://github.com/ZiggyCreatures/FusionCache/blob/main/LICENSE.md)
+- [**CloudinaryDotNet**](https://github.com/cloudinary/CloudinaryDotNet) by Cloudinary under [**MIT License**](https://github.com/cloudinary/CloudinaryDotNet/blob/master/LICENSE)

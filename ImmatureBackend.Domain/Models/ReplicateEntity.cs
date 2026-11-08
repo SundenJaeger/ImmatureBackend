@@ -17,4 +17,10 @@ public class ReplicateEntity
     public required string ImagePublicId { get; set; }
     public required string ImageSecureUrl { get; set; }
     public ReviewStatus ReviewStatus { get; set; }
+    public required string Season { get; set; }
+    public required string IndexNumber { get; set; }
+    public required string SelectionName { get; set; }
+    public int SampleNo { get; set; }
+    public DateTime CapturedAt { get; set; }
+    public DateTime SubmittedAt { get; set; }
 }

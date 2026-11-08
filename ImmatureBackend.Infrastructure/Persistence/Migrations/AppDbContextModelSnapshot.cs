@@ -75,6 +75,10 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("index_number");
 
+                    b.Property<bool>("MeetsRecommendedValue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("meets_recommended_value");
+
                     b.Property<decimal>("Percentage")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")

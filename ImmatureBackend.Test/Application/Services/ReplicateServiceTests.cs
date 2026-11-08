@@ -2,6 +2,7 @@ using FluentAssertions;
 using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
 using ImmatureBackend.Application.Errors;
+using ImmatureBackend.Application.Exceptions;
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
@@ -54,8 +55,42 @@ public class ReplicateServiceTests : IDisposable
             SampleId = "S1",
             AiPredictedGrains = "[]",
             ConfirmedGrains = "[]",
-            Weight = 10m
+            Weight = 10m,
+            Season = " 2026WS ",
+            IndexNumber = " 1234 ",
+            SelectionName = " NSIC Rc 222 ",
+            SampleNo = 2,
+            CapturedAt = new DateTimeOffset(2026, 11, 9, 8, 0, 0, TimeSpan.Zero),
+            SubmittedAt = new DateTimeOffset(2026, 11, 9, 8, 5, 0, TimeSpan.Zero)
         };
+    }
+
+    private static ReplicateEntity CreateEntity(Action<ReplicateEntity>? customize = null)
+    {
+        var entity = new ReplicateEntity
+        {
+            Id = Guid.NewGuid(),
+            TechnicianName = "Tech1",
+            SampleId = "S1",
+            ImmatureWeight = 10m,
+            Percentage = 33.3m,
+            Grade = Grade.NotClassified,
+            AiPredictedGrains = "[]",
+            ConfirmedGrains = "[]",
+            ImagePublicId = "public-id",
+            ImageSecureUrl = "https://cdn.example/image.jpg",
+            ReviewStatus = ReviewStatus.Review,
+            Season = "2026WS",
+            IndexNumber = "1234",
+            SelectionName = "NSIC Rc 222",
+            SampleNo = 2,
+            CapturedAt = new DateTime(2026, 11, 9, 8, 0, 0, DateTimeKind.Utc),
+            SubmittedAt = new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc)
+        };
+
+        customize?.Invoke(entity);
+
+        return entity;
     }
 
     [Fact]
@@ -63,23 +98,19 @@ public class ReplicateServiceTests : IDisposable
     {
         var entities = new List<ReplicateEntity>
         {
-            new()
+            CreateEntity(e =>
             {
-                Id = Guid.NewGuid(),
-                TechnicianName = "Tech1",
-                CreatedAt = DateTime.UtcNow,
-                SampleId = "S1",
-                AiPredictedGrains = JsonConvert.SerializeObject(new List<GrainBox> { new() { X = 1 } }),
-                ConfirmedGrains = JsonConvert.SerializeObject(new List<GrainBox> { new() { X = 2 } }),
-                ImmatureWeight = 10m,
-                Percentage = 33.33m,
-                Grade = Grade.G1,
-                ImagePublicId = "immature/images/abc123",
-                ImageSecureUrl = "https://res.cloudinary.com/demo/image/upload/abc123.jpg",
-                ReviewStatus = ReviewStatus.Review
-            }
+                e.CreatedAt = DateTime.UtcNow;
+                e.AiPredictedGrains = JsonConvert.SerializeObject(new List<GrainBox> { new() { X = 1 } });
+                e.ConfirmedGrains = JsonConvert.SerializeObject(new List<GrainBox> { new() { X = 2 } });
+                e.Percentage = 33.3m;
+                e.Grade = Grade.NotClassified;
+                e.ImagePublicId = "immature/images/abc123";
+                e.ImageSecureUrl = "https://res.cloudinary.com/demo/image/upload/abc123.jpg";
+            })
         };
 
+        _calculationService.Setup(c => c.MeetsRecommendedValue(33.3m)).Returns(false);
         _repository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
 
         var result = await _service.GetAllReplicateListItemsAsync();
@@ -90,9 +121,16 @@ public class ReplicateServiceTests : IDisposable
         item.TechnicianName.Should().Be("Tech1");
         item.SampleId.Should().Be("S1");
         item.ImmatureWeight.Should().Be(10m);
-        item.Percentage.Should().Be(33.33m);
-        item.Grade.Should().Be(Grade.G1);
+        item.Percentage.Should().Be(33.3m);
+        item.Grade.Should().Be(Grade.NotClassified);
         item.ReviewStatus.Should().Be(ReviewStatus.Review);
+        item.MeetsRecommendedValue.Should().BeFalse();
+        item.Season.Should().Be("2026WS");
+        item.IndexNumber.Should().Be("1234");
+        item.SelectionName.Should().Be("NSIC Rc 222");
+        item.SampleNo.Should().Be(2);
+        item.CapturedAt.Should().Be(entities[0].CapturedAt);
+        item.SubmittedAt.Should().Be(entities[0].SubmittedAt);
         item.ImagePublicId.Should().Be("immature/images/abc123");
         item.ImageSecureUrl.Should().Be("https://res.cloudinary.com/demo/image/upload/abc123.jpg");
         item.AiPredictedGrains.Should().HaveCount(1);
@@ -135,27 +173,15 @@ public class ReplicateServiceTests : IDisposable
     {
         var request = CreateRequest();
 
-        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
-        _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
+        _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
+        _calculationService.Setup(c => c.MeetsRecommendedValue(33.3m)).Returns(false);
 
         _imageService
             .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
 
-        var savedEntity = new ReplicateEntity
-        {
-            Id = Guid.NewGuid(),
-            TechnicianName = "Tech1",
-            SampleId = "S1",
-            ImmatureWeight = 10m,
-            Percentage = 33.33m,
-            Grade = Grade.G1,
-            AiPredictedGrains = "[]",
-            ConfirmedGrains = "[]",
-            ImagePublicId = "public-id",
-            ImageSecureUrl = "https://cdn.example/image.jpg",
-            ReviewStatus = ReviewStatus.Review
-        };
+        var savedEntity = CreateEntity();
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(savedEntity);
@@ -164,14 +190,87 @@ public class ReplicateServiceTests : IDisposable
 
         result.Should().BeSuccess();
         result.Value.Id.Should().Be(savedEntity.Id.ToString());
-        result.Value.Percentage.Should().Be(33.33m);
-        result.Value.Grade.Should().Be(Grade.G1);
+        result.Value.Percentage.Should().Be(33.3m);
+        result.Value.Grade.Should().Be(Grade.NotClassified);
+        result.Value.MeetsRecommendedValue.Should().BeFalse();
 
         _repository.Verify(r => r.CreateAsync(
             It.Is<ReplicateEntity>(e =>
                 e.ImagePublicId == "public-id" &&
-                e.ImageSecureUrl == "https://cdn.example/image.jpg"),
+                e.ImageSecureUrl == "https://cdn.example/image.jpg" &&
+                e.Season == "2026WS" &&
+                e.IndexNumber == "1234" &&
+                e.SelectionName == "NSIC Rc 222" &&
+                e.SampleNo == 2 &&
+                e.CapturedAt == new DateTime(2026, 11, 9, 8, 0, 0, DateTimeKind.Utc) &&
+                e.SubmittedAt == new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc)),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAsync_PercentageBelowTwo_ReportsMeetsRecommendedValue()
+    {
+        var request = CreateRequest();
+
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(1.9m);
+        _calculationService.Setup(c => c.AssignGrade(1.9m)).Returns(Grade.Pr);
+        _calculationService.Setup(c => c.MeetsRecommendedValue(1.9m)).Returns(true);
+        _imageService
+            .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
+        _repository
+            .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateEntity(e =>
+            {
+                e.Percentage = 1.9m;
+                e.Grade = Grade.Pr;
+            }));
+
+        var result = await _service.CreateAsync(request);
+
+        result.Should().BeSuccess();
+        result.Value.MeetsRecommendedValue.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CreateAsync_SampleAlreadyExists_ReturnsDuplicateSampleErrorWithoutUploadingOrSaving()
+    {
+        var request = CreateRequest();
+
+        _repository
+            .Setup(r => r.ExistsAsync("2026WS", "1234", 2, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _service.CreateAsync(request);
+
+        result.Should().BeFailure();
+        result.Errors.Should().ContainSingle(e => e is DuplicateSampleError);
+        _imageService.Verify(
+            i => i.UploadAsync(It.IsAny<Microsoft.AspNetCore.Http.IFormFile>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _repository.Verify(
+            r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAsync_UniqueIndexViolationOnSave_ReturnsDuplicateSampleError()
+    {
+        var request = CreateRequest();
+
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
+        _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
+        _imageService
+            .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
+        _repository
+            .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateReplicateException(new Exception("23505")));
+
+        var result = await _service.CreateAsync(request);
+
+        result.Should().BeFailure();
+        result.Errors.Should().ContainSingle(e => e is DuplicateSampleError);
     }
 
     [Fact]
@@ -179,8 +278,8 @@ public class ReplicateServiceTests : IDisposable
     {
         var request = CreateRequest();
 
-        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
-        _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
+        _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
 
         _imageService
             .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
@@ -230,23 +329,14 @@ public class ReplicateServiceTests : IDisposable
     public async Task CreateAsync_Success_InvalidatesListCache()
     {
         var request = CreateRequest();
-        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.33m);
-        _calculationService.Setup(c => c.AssignGrade(33.33m)).Returns(Grade.G1);
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
+        _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
         _imageService
             .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReplicateEntity
-            {
-                Id = Guid.NewGuid(),
-                TechnicianName = "Tech1",
-                SampleId = "S1",
-                AiPredictedGrains = "[]",
-                ConfirmedGrains = "[]",
-                ImagePublicId = "public-id",
-                ImageSecureUrl = "https://cdn.example/image.jpg"
-            });
+            .ReturnsAsync(CreateEntity());
         _repository
             .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<ReplicateEntity>());

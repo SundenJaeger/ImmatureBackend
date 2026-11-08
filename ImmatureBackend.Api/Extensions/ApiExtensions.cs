@@ -7,7 +7,10 @@ namespace ImmatureBackend.Api.Extensions;
 
 public static class ApiExtensions
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services)
+    private const string DashboardOrigin = "https://immature-dashboard.netlify.app";
+    private const string LocalDashboardOrigin = "http://localhost:5173";
+
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IHostEnvironment environment)
     {
         services.AddControllers()
             .AddNewtonsoftJson();
@@ -16,12 +19,17 @@ public static class ApiExtensions
         {
             options.AddPolicy("immature-dashboard-frontend", policy =>
             {
+                var origins = environment.IsDevelopment()
+                    ? new[] { DashboardOrigin, LocalDashboardOrigin }
+                    : new[] { DashboardOrigin };
+
                 policy
-                    .WithOrigins("https://immature-dashboard.netlify.app", "http://localhost:5173")
+                    .WithOrigins(origins)
                     .AllowAnyMethod()
                     .AllowAnyHeader();
             });
         });
+
 
         services
             .AddFusionCache()

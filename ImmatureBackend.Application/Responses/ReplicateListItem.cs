@@ -13,14 +13,28 @@ public sealed record ReplicateListItem
     public List<GrainBox> ConfirmedGrains { get; set; } = new();
     public decimal ImmatureWeight { get; set; }
 
-    /// <summary>Computed as (weight / 30) * 100.</summary>
+    /// <summary>Computed as (weight / 30) * 100, rounded to 1 decimal place. Rows saved before v2.0 keep 2 decimals.</summary>
     public decimal Percentage { get; set; }
 
-    /// <summary>One of "Pr", "G1", "G2", "G3", "Below Standard".</summary>
+    /// <summary>One of "Pr", "G1", "G2", "G3", "Not classified".</summary>
     public Grade Grade { get; set; }
 
     public ReviewStatus ReviewStatus { get; set; }
-    
+
+    public bool MeetsRecommendedValue { get; set; }
+
+    public string? Season { get; set; }
+    public string? IndexNumber { get; set; }
+    public string? SelectionName { get; set; }
+
+    public int? SampleNo { get; set; }
+
+    /// <summary>When the photo was captured on the device (UTC).</summary>
+    public DateTime? CapturedAt { get; set; }
+
+    /// <summary>When the technician submitted the record (UTC).</summary>
+    public DateTime? SubmittedAt { get; set; }
+
     /// <summary>Cloudinary public id of the uploaded sample image.</summary>
     public string ImagePublicId { get; set; } = string.Empty;
     

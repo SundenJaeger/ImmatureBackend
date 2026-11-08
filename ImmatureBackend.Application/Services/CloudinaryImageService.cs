@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using FileSignatures;
 using FileSignatures.Formats;
 using FluentResults;
+using ImmatureBackend.Application.Constants;
 using ImmatureBackend.Application.Errors;
 using ImmatureBackend.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -15,8 +16,6 @@ public class CloudinaryImageService(
     IFileFormatInspector fileFormatInspector,
     ILogger<CloudinaryImageService> logger) : IImageService
 {
-    private const long MaxImageSize = 10 * 1024 * 1024;
-
     public async Task<Result<(string publicId, string secureUrl)>> UploadAsync(IFormFile file,
         CancellationToken cancellationToken = default)
     {
@@ -27,13 +26,13 @@ public class CloudinaryImageService(
             file.ContentType
         );
 
-        if (file.Length is 0 or > MaxImageSize)
+        if (file.Length is 0 or > ReplicateRules.MaxImageBytes)
         {
             logger.LogWarning(
                 "Image upload rejected: {FileName} is {Size} bytes (must be between 1 and {MaxSize}).",
                 file.FileName,
                 file.Length,
-                MaxImageSize
+                ReplicateRules.MaxImageBytes
             );
 
             return Result.Fail(new InvalidImageError("Image exceeds the maximum allowed file size."));

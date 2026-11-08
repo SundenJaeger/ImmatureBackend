@@ -19,14 +19,18 @@ public class ReplicatesController(
     /// <remarks>
     /// Multipart form-data. "aiPredictedGrains" and "confirmedGrains" are JSON-encoded strings
     /// (a JSON array serialized into a single form field), not native JSON arrays.
+    /// "season" must look like 2026WS or 2026DS, "sampleNo" is 1 or 2, "weight" is greater than 0 and at most 30,
+    /// and "capturedAt" / "submittedAt" are ISO-8601 UTC timestamps with submittedAt not earlier than capturedAt.
     /// </remarks>
-    /// <response code="200">Replicate saved; returns its id, computed percentage, and grade.</response>
-    /// <response code="400">A required field is missing, or weight is not greater than zero.</response>
+    /// <response code="200">Replicate saved; returns its id, percentage (1 decimal), grade, and meetsRecommendedValue.</response>
+    /// <response code="400">A required field is missing or invalid (for example weight outside 0 to 30 g).</response>
     /// <response code="401">Missing, expired or invalid bearer token.</response>
+    /// <response code="409">A replicate with the same season, index number and sample number already exists.</response>
     /// <response code="422">The uploaded file isn't a JPEG or PNG image, or the image upload failed.</response>
     [ProducesResponseType(typeof(ReplicateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status422UnprocessableEntity)]
     [Authorize(Policy = "Capture")]
     [HttpPost("replicate")]
@@ -43,9 +47,10 @@ public class ReplicatesController(
     }
 
     /// <summary>
-    /// Lists every replicate row for the dashboard, including each image's Cloudinary public id and URL.
+    /// Lists every replicate row for the dashboard, including the NCT fields, timestamps, and each image's
+    /// Cloudinary public id and URL.
     /// </summary>
-    /// <response code="200">All replicate rows, each with "imagePublicId" and "imageSecureUrl".</response>
+    /// <response code="200">All replicate rows, each with "meetsRecommendedValue", "imagePublicId" and "imageSecureUrl".</response>
     /// <response code="401">Missing, expired or invalid bearer token.</response>
     /// <response code="403">The signed-in user doesn't have the dashboard role.</response>
     [ProducesResponseType(typeof(IReadOnlyList<ReplicateListItem>), StatusCodes.Status200OK)]

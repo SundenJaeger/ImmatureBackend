@@ -1,8 +1,11 @@
-﻿using ImmatureBackend.Application.Interfaces;
+﻿using ImmatureBackend.Application.Exceptions;
+using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
 using ImmatureBackend.Infrastructure.Persistence;
+using ImmatureBackend.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace ImmatureBackend.Infrastructure.Repositories;
 
@@ -12,9 +15,30 @@ public class ReplicateRepository(AppDbContext context) : IReplicateRepository
         CancellationToken cancellationToken = default)
     {
         context.ReplicateEntities.Add(entity);
-        await context.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsDuplicateSample(exception))
+        {
+            context.Entry(entity).State = EntityState.Detached;
+
+            throw new DuplicateReplicateException(exception);
+        }
 
         return entity;
+    }
+
+    public async Task<bool> ExistsAsync(string season, string indexNumber, int sampleNo,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.ReplicateEntities
+            .AsNoTracking()
+            .AnyAsync(entity => entity.Season == season
+                                && entity.IndexNumber == indexNumber
+                                && entity.SampleNo == sampleNo,
+                cancellationToken);
     }
 
     public async Task<IReadOnlyList<ReplicateEntity>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -34,5 +58,14 @@ public class ReplicateRepository(AppDbContext context) : IReplicateRepository
                 cancellationToken);
 
         return rowsAffected > 0;
+    }
+
+    private static bool IsDuplicateSample(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: ReplicateEntityConfiguration.UniqueSampleIndexName
+        };
     }
 }

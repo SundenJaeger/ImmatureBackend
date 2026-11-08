@@ -11,5 +11,5 @@ public enum Grade
     G1,
     G2,
     G3,
-    [EnumMember(Value = "Below Standard")] BelowStandard
+    [EnumMember(Value = "Not Classified")] NotClassified
 }

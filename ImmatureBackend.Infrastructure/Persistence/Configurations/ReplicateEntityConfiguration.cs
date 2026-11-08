@@ -1,4 +1,5 @@
-﻿using ImmatureBackend.Domain.Enums;
+﻿using ImmatureBackend.Application.Constants;
+using ImmatureBackend.Domain.Enums;
 using ImmatureBackend.Domain.Models;
 using ImmatureBackend.Infrastructure.Persistence.ValueConverters;
 using ImmatureBackend.Infrastructure.Persistence.ValueGenerators;
@@ -9,6 +10,8 @@ namespace ImmatureBackend.Infrastructure.Persistence.Configurations;
 
 public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEntity>
 {
+    public const string UniqueSampleIndexName = "ix_replicates_season_index_number_sample_no";
+
     public void Configure(EntityTypeBuilder<ReplicateEntity> builder)
     {
         builder.ToTable("replicates");
@@ -66,5 +69,36 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasConversion(status => status.ToString().ToLowerInvariant(),
                 s => Enum.Parse<ReviewStatus>(s, true))
             .IsRequired();
+
+        builder.Property(entity => entity.Season)
+            .HasColumnName("season")
+            .HasMaxLength(ReplicateRules.SeasonMaxLength)
+            .IsRequired();
+
+        builder.Property(entity => entity.IndexNumber)
+            .HasColumnName("index_number")
+            .HasMaxLength(ReplicateRules.IndexNumberMaxLength)
+            .IsRequired();
+
+        builder.Property(entity => entity.SelectionName)
+            .HasColumnName("selection_name")
+            .HasMaxLength(ReplicateRules.SelectionNameMaxLength)
+            .IsRequired();
+
+        builder.Property(entity => entity.SampleNo)
+            .HasColumnName("sample_no")
+            .IsRequired();
+
+        builder.Property(entity => entity.CapturedAt)
+            .HasColumnName("captured_at")
+            .IsRequired();
+
+        builder.Property(entity => entity.SubmittedAt)
+            .HasColumnName("submitted_at")
+            .IsRequired();
+
+        builder.HasIndex(entity => new { entity.Season, entity.IndexNumber, entity.SampleNo })
+            .IsUnique()
+            .HasDatabaseName(UniqueSampleIndexName);
     }
 }

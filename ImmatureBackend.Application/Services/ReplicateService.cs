@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using FluentResults;
 using ImmatureBackend.Application.Errors;
+using ImmatureBackend.Application.Exceptions;
 using ImmatureBackend.Application.Interfaces;
 using ImmatureBackend.Application.Requests;
 using ImmatureBackend.Application.Responses;
@@ -45,6 +46,13 @@ public class ReplicateService(
                     Percentage = entity.Percentage,
                     Grade = entity.Grade,
                     ReviewStatus = entity.ReviewStatus,
+                    MeetsRecommendedValue = calculationService.MeetsRecommendedValue(entity.Percentage),
+                    Season = entity.Season,
+                    IndexNumber = entity.IndexNumber,
+                    SelectionName = entity.SelectionName,
+                    SampleNo = entity.SampleNo,
+                    CapturedAt = entity.CapturedAt,
+                    SubmittedAt = entity.SubmittedAt,
                     ImagePublicId = entity.ImagePublicId,
                     ImageSecureUrl = entity.ImageSecureUrl
                 }).ToList();
@@ -82,10 +90,26 @@ public class ReplicateService(
     public async Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request,
         CancellationToken cancellationToken = default)
     {
+        var season = request.Season.Trim();
+        var indexNumber = request.IndexNumber.Trim();
+        var selectionName = request.SelectionName.Trim();
+        var sampleNo = request.SampleNo!.Value;
+
         logger.LogInformation(
             "Creating replicate for sample {SampleId} by Technician {TechnicianName}",
             request.SampleId,
             request.TechnicianName);
+
+        if (await repository.ExistsAsync(season, indexNumber, sampleNo, cancellationToken))
+        {
+            logger.LogWarning(
+                "Replicate creation rejected: sample {SampleNo} already exists for season {Season}, index number {IndexNumber}.",
+                sampleNo,
+                season,
+                indexNumber);
+
+            return Result.Fail(new DuplicateSampleError(season, indexNumber, sampleNo));
+        }
 
         var percentage = calculationService.CalculatePercentage(request.Weight!.Value);
         var grade = calculationService.AssignGrade(percentage);
@@ -115,11 +139,31 @@ public class ReplicateService(
             Grade = grade,
             ImagePublicId = publicId,
             ImageSecureUrl = secureUrl,
-            ReviewStatus = ReviewStatus.Review
+            ReviewStatus = ReviewStatus.Review,
+            Season = season,
+            IndexNumber = indexNumber,
+            SelectionName = selectionName,
+            SampleNo = sampleNo,
+            CapturedAt = request.CapturedAt!.Value.UtcDateTime,
+            SubmittedAt = request.SubmittedAt!.Value.UtcDateTime
         };
 
-        var saved = await repository.CreateAsync(entity, cancellationToken);
-        
+        ReplicateEntity saved;
+        try
+        {
+            saved = await repository.CreateAsync(entity, cancellationToken);
+        }
+        catch (DuplicateReplicateException)
+        {
+            logger.LogWarning(
+                "Replicate creation rejected by the unique index: sample {SampleNo}, season {Season}, index number {IndexNumber}.",
+                sampleNo,
+                season,
+                indexNumber);
+
+            return Result.Fail(new DuplicateSampleError(season, indexNumber, sampleNo));
+        }
+
         await cache.RemoveAsync(AllReplicatesCacheKey, token: cancellationToken);
 
         logger.LogInformation(
@@ -135,7 +179,8 @@ public class ReplicateService(
         {
             Id = saved.Id.ToString(),
             Percentage = saved.Percentage,
-            Grade = saved.Grade
+            Grade = saved.Grade,
+            MeetsRecommendedValue = calculationService.MeetsRecommendedValue(saved.Percentage)
         };
     }
 }

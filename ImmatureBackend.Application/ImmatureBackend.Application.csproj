@@ -27,8 +27,4 @@
       <ProjectReference Include="..\ImmatureBackend.Domain\ImmatureBackend.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Exceptions\" />
-    </ItemGroup>
-
 </Project>

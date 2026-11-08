@@ -25,13 +25,16 @@ them to a review dashboard. For each replicate it computes the immature percenta
 percentage = (weight / 30) * 100
 ```
 
+The percentage is rounded to 1 decimal place, half away from zero. The weight must be greater than 0 and at most 30 g.
+A replicate meets the recommended value (`meetsRecommendedValue: true`) when its percentage is below 2.0.
+
 | Percentage      | Grade          |
 |-----------------|----------------|
 | Below 2         | Pr             |
 | 2 to 5          | G1             |
 | Above 5 to 10   | G2             |
 | Above 10 to 15  | G3             |
-| Above 15        | Below Standard |
+| Above 15        | Not classified |
 
 # Usage
 > Check the [Swagger Documentation](https://immaturebackend-dev.onrender.com/swagger/index.html)

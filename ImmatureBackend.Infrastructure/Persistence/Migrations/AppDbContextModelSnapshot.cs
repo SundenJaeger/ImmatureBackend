@@ -17,7 +17,7 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -33,6 +33,10 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("ai_predicted_grains");
+
+                    b.Property<DateTime>("CapturedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("captured_at");
 
                     b.Property<string>("ConfirmedGrains")
                         .IsRequired()
@@ -65,6 +69,12 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("immature_weight");
 
+                    b.Property<string>("IndexNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("index_number");
+
                     b.Property<decimal>("Percentage")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")
@@ -80,6 +90,26 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("sample_id");
 
+                    b.Property<int>("SampleNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("sample_no");
+
+                    b.Property<string>("Season")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("season");
+
+                    b.Property<string>("SelectionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("selection_name");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
                     b.Property<string>("TechnicianName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -87,6 +117,10 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnName("technician_name");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Season", "IndexNumber", "SampleNo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_replicates_season_index_number_sample_no");
 
                     b.ToTable("replicates", (string)null);
                 });

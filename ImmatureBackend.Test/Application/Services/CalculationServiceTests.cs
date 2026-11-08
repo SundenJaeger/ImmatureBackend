@@ -35,8 +35,8 @@ public class CalculationServiceTests
     [InlineData(10.01, Grade.G3)]
     [InlineData(12.5, Grade.G3)]
     [InlineData(15.0, Grade.G3)]
-    [InlineData(15.01, Grade.BelowStandard)]
-    [InlineData(100.0, Grade.BelowStandard)]
+    [InlineData(15.01, Grade.NotClassified)]
+    [InlineData(100.0, Grade.NotClassified)]
     public void AssignGrade_ReturnsCorrectGradeAtEachBoundary(decimal percentage, Grade expectedGrade)
     {
         var result = _service.AssignGrade(percentage);

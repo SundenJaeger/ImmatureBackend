@@ -14,7 +14,7 @@ public sealed class GradeConverter() : ValueConverter<Grade, string>(grade => Co
             Grade.G1 => "G1",
             Grade.G2 => "G2",
             Grade.G3 => "G3",
-            Grade.BelowStandard => "Below Standard",
+            Grade.NotClassified => "Not Classified",
             _ => throw new ArgumentOutOfRangeException(nameof(grade), grade, null)
         };
     }
@@ -27,7 +27,7 @@ public sealed class GradeConverter() : ValueConverter<Grade, string>(grade => Co
             "G1" => Grade.G1,
             "G2" => Grade.G2,
             "G3" => Grade.G3,
-            "Below Standard" => Grade.BelowStandard,
+            "Not Classified" => Grade.NotClassified,
             _ => throw new ArgumentException(
                 $"Unknown Grade: {value}",
                 nameof(value))

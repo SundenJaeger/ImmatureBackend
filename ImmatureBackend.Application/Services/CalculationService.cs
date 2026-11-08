@@ -23,7 +23,7 @@ public class CalculationService : ICalculationService
             <= 5.0m => Grade.G1,
             <= 10.0m => Grade.G2,
             <= 15.0m => Grade.G3,
-            _ => Grade.BelowStandard
+            _ => Grade.NotClassified
         };
     }
 }

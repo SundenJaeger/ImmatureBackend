@@ -224,6 +224,7 @@ public class ReplicateServiceTests : IDisposable
             {
                 e.Percentage = 1.9m;
                 e.Grade = Grade.Pr;
+                e.MeetsRecommendedValue = true;
             }));
 
         var result = await _service.CreateAsync(request);

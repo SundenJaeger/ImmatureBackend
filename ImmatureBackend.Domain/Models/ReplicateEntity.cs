@@ -23,4 +23,5 @@ public class ReplicateEntity
     public int SampleNo { get; set; }
     public DateTime CapturedAt { get; set; }
     public DateTime SubmittedAt { get; set; }
+    public bool MeetsRecommendedValue { get; set; }
 }

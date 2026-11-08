@@ -24,7 +24,35 @@ public class CalculationServiceTests
     }
 
     [Theory]
+    [InlineData(0.01, 0.0)]
+    [InlineData(0.57, 1.9)]
+    [InlineData(0.6, 2.0)]
+    [InlineData(1.5, 5.0)]
+    [InlineData(3.0, 10.0)]
+    [InlineData(4.5, 15.0)]
+    [InlineData(4.53, 15.1)]
+    [InlineData(30.0, 100.0)]
+    public void CalculatePercentage_ReturnsPercentageOfThirtyGramsToOneDecimal(decimal weight, decimal expected)
+    {
+        var result = _service.CalculatePercentage(weight);
+
+        Assert.Equal(expected, result);
+    }
+    
+    [Theory]
+    [InlineData(0.045, 0.2)]
+    [InlineData(0.075, 0.3)]
+    [InlineData(0.135, 0.5)]
+    public void CalculatePercentage_MidpointRoundsAwayFromZero(decimal weight, decimal expected)
+    {
+        var result = _service.CalculatePercentage(weight);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
     [InlineData(0.0, Grade.Pr)]
+    [InlineData(1.9, Grade.Pr)]
     [InlineData(1.99, Grade.Pr)]
     [InlineData(2.0, Grade.G1)]
     [InlineData(3.5, Grade.G1)]
@@ -36,6 +64,7 @@ public class CalculationServiceTests
     [InlineData(12.5, Grade.G3)]
     [InlineData(15.0, Grade.G3)]
     [InlineData(15.01, Grade.NotClassified)]
+    [InlineData(15.1, Grade.NotClassified)]
     [InlineData(100.0, Grade.NotClassified)]
     public void AssignGrade_ReturnsCorrectGradeAtEachBoundary(decimal percentage, Grade expectedGrade)
     {
@@ -57,5 +86,18 @@ public class CalculationServiceTests
     {
         Assert.Equal(Grade.G1, _service.AssignGrade(5.0m));
         Assert.NotEqual(Grade.G2, _service.AssignGrade(5.0m));
+    }
+
+    [Theory]
+    [InlineData(0.0, true)]
+    [InlineData(1.9, true)]
+    [InlineData(1.99, true)]
+    [InlineData(2.0, false)]
+    [InlineData(5.0, false)]
+    [InlineData(15.0, false)]
+    [InlineData(15.1, false)]
+    public void MeetsRecommendedValue_IsTrueOnlyBelowTwoPercent(decimal percentage, bool expected)
+    {
+        Assert.Equal(expected, _service.MeetsRecommendedValue(percentage));
     }
 }

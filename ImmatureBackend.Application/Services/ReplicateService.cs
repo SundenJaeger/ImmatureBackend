@@ -46,7 +46,7 @@ public class ReplicateService(
                     Percentage = entity.Percentage,
                     Grade = entity.Grade,
                     ReviewStatus = entity.ReviewStatus,
-                    MeetsRecommendedValue = calculationService.MeetsRecommendedValue(entity.Percentage),
+                    MeetsRecommendedValue = entity.MeetsRecommendedValue,
                     Season = entity.Season,
                     IndexNumber = entity.IndexNumber,
                     SelectionName = entity.SelectionName,
@@ -145,7 +145,8 @@ public class ReplicateService(
             SelectionName = selectionName,
             SampleNo = sampleNo,
             CapturedAt = request.CapturedAt!.Value.UtcDateTime,
-            SubmittedAt = request.SubmittedAt!.Value.UtcDateTime
+            SubmittedAt = request.SubmittedAt!.Value.UtcDateTime,
+            MeetsRecommendedValue = calculationService.MeetsRecommendedValue(percentage)
         };
 
         ReplicateEntity saved;
@@ -180,7 +181,7 @@ public class ReplicateService(
             Id = saved.Id.ToString(),
             Percentage = saved.Percentage,
             Grade = saved.Grade,
-            MeetsRecommendedValue = calculationService.MeetsRecommendedValue(saved.Percentage)
+            MeetsRecommendedValue = saved.MeetsRecommendedValue
         };
     }
 }

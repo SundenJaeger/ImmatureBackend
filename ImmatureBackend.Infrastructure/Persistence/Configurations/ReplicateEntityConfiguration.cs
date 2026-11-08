@@ -97,6 +97,10 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasColumnName("submitted_at")
             .IsRequired();
 
+        builder.Property(entity => entity.MeetsRecommendedValue)
+            .HasColumnName("meets_recommended_value")
+            .IsRequired();
+
         builder.HasIndex(entity => new { entity.Season, entity.IndexNumber, entity.SampleNo })
             .IsUnique()
             .HasDatabaseName(UniqueSampleIndexName);

@@ -20,6 +20,7 @@ public static class ApplicationExtensions
         services.AddScoped<ICalculationService, CalculationService>();
         services.AddScoped<IReplicateService, ReplicateService>();
         services.AddScoped<IImageService, CloudinaryImageService>();
+        services.AddScoped<ICsvExportService, CsvExportService>();
 
         services.AddSingleton<IFileFormatInspector>(_ =>
         {

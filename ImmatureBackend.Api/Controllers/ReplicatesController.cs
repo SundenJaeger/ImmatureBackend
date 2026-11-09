@@ -10,7 +10,8 @@ namespace ImmatureBackend.Api.Controllers;
 [ApiController]
 [Route("api")]
 public class ReplicatesController(
-    IReplicateService replicateService) : ControllerBase
+    IReplicateService replicateService,
+    ICsvExportService csvExportService) : ControllerBase
 {
     /// <summary>
     /// Submits a confirmed replicate: image, grain boxes, and weight. Uploads the image to Cloudinary,
@@ -63,6 +64,28 @@ public class ReplicatesController(
         var entities = await replicateService.GetAllReplicateListItemsAsync(cancellationToken);
 
         return Ok(entities);
+    }
+
+    /// <summary>
+    /// Downloads every replicate as a CSV file (UTF-8 with BOM, header row, RFC 4180 quoting).
+    /// </summary>
+    /// <remarks>
+    /// Grain lists are JSON text inside their cells. The file name is granular-records-YYYYMMDD.csv (UTC date).
+    /// </remarks>
+    /// <response code="200">The CSV file.</response>
+    /// <response code="401">Missing, expired or invalid bearer token.</response>
+    /// <response code="403">The signed-in user doesn't have the dashboard role.</response>
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "text/csv")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [Authorize(Policy = "Dashboard")]
+    [HttpGet("replicates/export")]
+    public async Task<IActionResult> ExportCsv(CancellationToken cancellationToken)
+    {
+        var bytes = await csvExportService.ExportReplicatesAsync(cancellationToken);
+        var fileName = $"granular-records-{DateTime.UtcNow:yyyyMMdd}.csv";
+
+        return File(bytes, "text/csv; charset=utf-8", fileName);
     }
 
     /// <summary>

@@ -101,6 +101,11 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasColumnName("meets_recommended_value")
             .IsRequired();
 
+        builder.Property(entity => entity.ProcessingSeconds)
+            .HasColumnName("processing_seconds")
+            .HasPrecision(10, 1)
+            .IsRequired();
+
         builder.HasIndex(entity => new { entity.Season, entity.IndexNumber, entity.SampleNo })
             .IsUnique()
             .HasDatabaseName(UniqueSampleIndexName);

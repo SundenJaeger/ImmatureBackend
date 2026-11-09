@@ -84,6 +84,11 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("percentage");
 
+                    b.Property<decimal>("ProcessingSeconds")
+                        .HasPrecision(10, 1)
+                        .HasColumnType("numeric(10,1)")
+                        .HasColumnName("processing_seconds");
+
                     b.Property<string>("ReviewStatus")
                         .IsRequired()
                         .HasColumnType("text")

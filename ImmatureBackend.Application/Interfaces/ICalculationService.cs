@@ -7,4 +7,5 @@ public interface ICalculationService
     decimal CalculatePercentage(decimal weight);
     Grade AssignGrade(decimal percentage);
     bool MeetsRecommendedValue(decimal percentage);
+    decimal CalculateProcessingSeconds(DateTimeOffset capturedAt, DateTimeOffset submittedAt);
 }

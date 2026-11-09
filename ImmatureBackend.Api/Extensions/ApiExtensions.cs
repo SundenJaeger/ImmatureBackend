@@ -26,10 +26,10 @@ public static class ApiExtensions
                 policy
                     .WithOrigins(origins)
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Content-Disposition");
             });
         });
-
 
         services
             .AddFusionCache()

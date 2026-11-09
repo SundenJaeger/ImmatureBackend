@@ -24,4 +24,5 @@ public class ReplicateEntity
     public DateTime CapturedAt { get; set; }
     public DateTime SubmittedAt { get; set; }
     public bool MeetsRecommendedValue { get; set; }
+    public decimal ProcessingSeconds { get; set; }
 }

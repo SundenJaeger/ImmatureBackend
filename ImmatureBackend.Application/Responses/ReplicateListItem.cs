@@ -40,4 +40,7 @@ public sealed record ReplicateListItem
     
     /// <summary>HTTPS URL of the sample image, loadable directly (no auth header needed).</summary>
     public string ImageSecureUrl { get; set; } = string.Empty;
+    
+    /// <summary>Seconds from capture to submission, 1 decimal.</summary>
+    public decimal ProcessingSeconds { get; set; }
 }

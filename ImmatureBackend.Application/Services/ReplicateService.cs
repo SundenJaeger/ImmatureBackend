@@ -54,7 +54,8 @@ public class ReplicateService(
                     CapturedAt = entity.CapturedAt,
                     SubmittedAt = entity.SubmittedAt,
                     ImagePublicId = entity.ImagePublicId,
-                    ImageSecureUrl = entity.ImageSecureUrl
+                    ImageSecureUrl = entity.ImageSecureUrl,
+                    ProcessingSeconds = entity.ProcessingSeconds
                 }).ToList();
             },
             token: cancellationToken
@@ -75,7 +76,7 @@ public class ReplicateService(
 
             return Result.Fail(new ReplicateNotFoundError(id));
         }
-        
+
         await cache.RemoveAsync(AllReplicatesCacheKey, token: cancellationToken);
 
         logger.LogInformation("Replicate {ReplicateId} review status set to {ReviewStatus}.", id, status);
@@ -146,7 +147,9 @@ public class ReplicateService(
             SampleNo = sampleNo,
             CapturedAt = request.CapturedAt!.Value.UtcDateTime,
             SubmittedAt = request.SubmittedAt!.Value.UtcDateTime,
-            MeetsRecommendedValue = calculationService.MeetsRecommendedValue(percentage)
+            MeetsRecommendedValue = calculationService.MeetsRecommendedValue(percentage),
+            ProcessingSeconds =
+                calculationService.CalculateProcessingSeconds(request.CapturedAt!.Value, request.SubmittedAt!.Value)
         };
 
         ReplicateEntity saved;

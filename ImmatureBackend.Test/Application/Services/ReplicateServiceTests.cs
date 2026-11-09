@@ -85,7 +85,8 @@ public class ReplicateServiceTests : IDisposable
             SelectionName = "NSIC Rc 222",
             SampleNo = 2,
             CapturedAt = new DateTime(2026, 11, 9, 8, 0, 0, DateTimeKind.Utc),
-            SubmittedAt = new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc)
+            SubmittedAt = new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc),
+            ProcessingSeconds = 300m
         };
 
         customize?.Invoke(entity);
@@ -135,6 +136,7 @@ public class ReplicateServiceTests : IDisposable
         item.ImageSecureUrl.Should().Be("https://res.cloudinary.com/demo/image/upload/abc123.jpg");
         item.AiPredictedGrains.Should().HaveCount(1);
         item.ConfirmedGrains.Should().HaveCount(1);
+        item.ProcessingSeconds.Should().Be(300m);
     }
 
     [Fact]
@@ -169,42 +171,63 @@ public class ReplicateServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAsync_ValidRequest_ReturnsReplicateResponse()
+    public async Task CreateAsync_ValidRequest_SavesCalculatedEntityAndReturnsReplicateResponse()
     {
         var request = CreateRequest();
+        var savedId = Guid.NewGuid();
+        ReplicateEntity? savedEntity = null;
 
         _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
         _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
         _calculationService.Setup(c => c.MeetsRecommendedValue(33.3m)).Returns(false);
 
+        var capturedAt = request.CapturedAt!.Value;
+        var submittedAt = request.SubmittedAt!.Value;
+        _calculationService.Setup(c => c.CalculateProcessingSeconds(capturedAt, submittedAt)).Returns(300m);
+
         _imageService
             .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
-
-        var savedEntity = CreateEntity();
+        
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(savedEntity);
+            .Returns((ReplicateEntity entity, CancellationToken _) =>
+            {
+                entity.Id = savedId;
+                savedEntity = entity;
+
+                return Task.FromResult(entity);
+            });
 
         var result = await _service.CreateAsync(request);
 
         result.Should().BeSuccess();
-        result.Value.Id.Should().Be(savedEntity.Id.ToString());
+        result.Value.Id.Should().Be(savedId.ToString());
         result.Value.Percentage.Should().Be(33.3m);
         result.Value.Grade.Should().Be(Grade.NotClassified);
         result.Value.MeetsRecommendedValue.Should().BeFalse();
 
-        _repository.Verify(r => r.CreateAsync(
-            It.Is<ReplicateEntity>(e =>
-                e.ImagePublicId == "public-id" &&
-                e.ImageSecureUrl == "https://cdn.example/image.jpg" &&
-                e.Season == "2026WS" &&
-                e.IndexNumber == "1234" &&
-                e.SelectionName == "NSIC Rc 222" &&
-                e.SampleNo == 2 &&
-                e.CapturedAt == new DateTime(2026, 11, 9, 8, 0, 0, DateTimeKind.Utc) &&
-                e.SubmittedAt == new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc)),
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repository.Verify(
+            r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        
+        savedEntity.Should().NotBeNull();
+        savedEntity!.TechnicianName.Should().Be("Tech1");
+        savedEntity.SampleId.Should().Be("S1");
+        savedEntity.ImmatureWeight.Should().Be(10m);
+        savedEntity.Percentage.Should().Be(33.3m);
+        savedEntity.Grade.Should().Be(Grade.NotClassified);
+        savedEntity.MeetsRecommendedValue.Should().BeFalse();
+        savedEntity.ReviewStatus.Should().Be(ReviewStatus.Review);
+        savedEntity.ImagePublicId.Should().Be("public-id");
+        savedEntity.ImageSecureUrl.Should().Be("https://cdn.example/image.jpg");
+        savedEntity.Season.Should().Be("2026WS");
+        savedEntity.IndexNumber.Should().Be("1234");
+        savedEntity.SelectionName.Should().Be("NSIC Rc 222");
+        savedEntity.SampleNo.Should().Be(2);
+        savedEntity.CapturedAt.Should().Be(new DateTime(2026, 11, 9, 8, 0, 0, DateTimeKind.Utc));
+        savedEntity.SubmittedAt.Should().Be(new DateTime(2026, 11, 9, 8, 5, 0, DateTimeKind.Utc));
+        savedEntity.ProcessingSeconds.Should().Be(300m);
     }
 
     [Fact]

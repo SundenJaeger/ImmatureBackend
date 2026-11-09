@@ -32,4 +32,11 @@ public class CalculationService : ICalculationService
     {
         return percentage < ReplicateRules.RecommendedValuePercentage;
     }
+
+    public decimal CalculateProcessingSeconds(DateTimeOffset capturedAt, DateTimeOffset submittedAt)
+    {
+        var seconds = (decimal)(submittedAt - capturedAt).TotalSeconds;
+
+        return Math.Round(seconds, 1, MidpointRounding.AwayFromZero);
+    }
 }

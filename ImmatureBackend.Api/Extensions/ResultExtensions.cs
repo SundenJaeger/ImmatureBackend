@@ -23,7 +23,7 @@ public static class ResultExtensions
             {
                 ImageNotFoundError or ReplicateNotFoundError => new NotFoundObjectResult(body),
                 InvalidImageError => new UnprocessableEntityObjectResult(body),
-                DuplicateSampleError => new ConflictObjectResult(body),
+                ReplicateNumberConflictError => new ConflictObjectResult(body),
                 _ => new BadRequestObjectResult(body)
             };
         }

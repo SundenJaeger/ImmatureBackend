@@ -2,7 +2,10 @@
 
 namespace ImmatureBackend.Application.Requests;
 
-/// <summary>Multipart form-data payload for POST /api/replicate.</summary>
+/// <summary>
+/// Multipart form-data payload for POST /api/replicate. One call per photo: several photos of the same
+/// sample (season + index number + sample no) are stored as replicates -01, -02, -03 ...
+/// </summary>
 public sealed record ReplicateRequest
 {
     /// <summary>Sample image, exactly 1024x1024 JPEG/PNG, up to 10 MB.</summary>
@@ -31,6 +34,12 @@ public sealed record ReplicateRequest
 
     /// <summary>Which sample of the entry this is: 1 or 2.</summary>
     public int? SampleNo { get; init; }
+
+    /// <summary>
+    /// Optional. Set to true when the technician manually overrode the AI result on this photo.
+    /// Defaults to false. The replicate number (-01, -02, ...) is assigned by the server.
+    /// </summary>
+    public bool ManuallyOverridden { get; init; }
 
     /// <summary>When the photo was captured (ISO-8601, UTC).</summary>
     public DateTimeOffset? CapturedAt { get; init; }

@@ -15,4 +15,18 @@ public sealed record ReplicateResponse
 
     /// <summary>True when the percentage is below the recommended value of 2.0%.</summary>
     public bool MeetsRecommendedValue { get; init; }
+
+    /// <summary>Replicate number assigned within the sample (1, 2, 3 ...).</summary>
+    public int ReplicateNo { get; init; }
+
+    /// <summary>Sample id plus the replicate suffix, for example "S1-02".</summary>
+    public string ReplicateLabel { get; init; } = string.Empty;
+
+    /// <summary>Mean AI box confidence (0-1), null when unavailable.</summary>
+    public decimal? Confidence { get; init; }
+
+    public ReplicateQuality Quality { get; init; }
+
+    /// <summary>"accepted" when this submission completed the sample and it was auto-accepted, otherwise "review".</summary>
+    public ReviewStatus ReviewStatus { get; init; }
 }

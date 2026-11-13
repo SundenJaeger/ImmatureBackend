@@ -64,7 +64,12 @@ public class CsvExportService(IReplicateService replicateService) : ICsvExportSe
             CreatedAt = FormatTimestamp(item.CreatedAt),
             ImageSecureUrl = item.ImageSecureUrl,
             AiPredictedGrains = JsonConvert.SerializeObject(item.AiPredictedGrains, JsonSettings),
-            ConfirmedGrains = JsonConvert.SerializeObject(item.ConfirmedGrains, JsonSettings)
+            ConfirmedGrains = JsonConvert.SerializeObject(item.ConfirmedGrains, JsonSettings),
+            ReplicateNo = item.ReplicateNo,
+            ReplicateLabel = item.ReplicateLabel,
+            Confidence = item.Confidence,
+            Quality = JsonConvert.SerializeObject(item.Quality).Trim('"'),
+            ManuallyOverridden = item.ManuallyOverridden
         };
     }
 

@@ -61,4 +61,19 @@ public partial class ReplicateCsvRow
 
     [CsvColumn("confirmed_grains", Index = 18)]
     public string ConfirmedGrains { get; set; } = string.Empty;
+
+    [CsvColumn("replicate_no", Index = 19)]
+    public int ReplicateNo { get; set; }
+
+    [CsvColumn("replicate_label", Index = 20)]
+    public string ReplicateLabel { get; set; } = string.Empty;
+
+    [CsvColumn("confidence", Index = 21)]
+    public decimal? Confidence { get; set; }
+
+    [CsvColumn("quality", Index = 22)]
+    public string Quality { get; set; } = string.Empty;
+
+    [CsvColumn("manually_overridden", Index = 23)]
+    public bool ManuallyOverridden { get; set; }
 }

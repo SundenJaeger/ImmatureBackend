@@ -10,7 +10,7 @@ namespace ImmatureBackend.Infrastructure.Persistence.Configurations;
 
 public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEntity>
 {
-    public const string UniqueSampleIndexName = "ix_replicates_season_index_number_sample_no";
+    public const string UniqueSampleIndexName = "ix_replicates_sample_replicate_no";
 
     public void Configure(EntityTypeBuilder<ReplicateEntity> builder)
     {
@@ -89,6 +89,16 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasColumnName("sample_no")
             .IsRequired();
 
+        builder.Property(entity => entity.ReplicateNo)
+            .HasColumnName("replicate_no")
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(entity => entity.ManuallyOverridden)
+            .HasColumnName("manually_overridden")
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(entity => entity.CapturedAt)
             .HasColumnName("captured_at")
             .IsRequired();
@@ -106,7 +116,7 @@ public class ReplicateEntityConfiguration : IEntityTypeConfiguration<ReplicateEn
             .HasPrecision(10, 1)
             .IsRequired();
 
-        builder.HasIndex(entity => new { entity.Season, entity.IndexNumber, entity.SampleNo })
+        builder.HasIndex(entity => new { entity.Season, entity.IndexNumber, entity.SampleNo, entity.ReplicateNo })
             .IsUnique()
             .HasDatabaseName(UniqueSampleIndexName);
     }

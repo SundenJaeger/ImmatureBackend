@@ -1,5 +1,4 @@
 ﻿using ImmatureBackend.Domain.Enums;
-using Newtonsoft.Json;
 
 namespace ImmatureBackend.Domain.Models;
 
@@ -21,6 +20,8 @@ public class ReplicateEntity
     public required string IndexNumber { get; set; }
     public required string SelectionName { get; set; }
     public int SampleNo { get; set; }
+    public int ReplicateNo { get; set; }
+    public bool ManuallyOverridden { get; set; }
     public DateTime CapturedAt { get; set; }
     public DateTime SubmittedAt { get; set; }
     public bool MeetsRecommendedValue { get; set; }

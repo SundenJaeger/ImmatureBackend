@@ -75,6 +75,12 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("index_number");
 
+                    b.Property<bool>("ManuallyOverridden")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("manually_overridden");
+
                     b.Property<bool>("MeetsRecommendedValue")
                         .HasColumnType("boolean")
                         .HasColumnName("meets_recommended_value");
@@ -88,6 +94,12 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
                         .HasPrecision(10, 1)
                         .HasColumnType("numeric(10,1)")
                         .HasColumnName("processing_seconds");
+
+                    b.Property<int>("ReplicateNo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("replicate_no");
 
                     b.Property<string>("ReviewStatus")
                         .IsRequired()
@@ -127,9 +139,9 @@ namespace ImmatureBackend.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Season", "IndexNumber", "SampleNo")
+                    b.HasIndex("Season", "IndexNumber", "SampleNo", "ReplicateNo")
                         .IsUnique()
-                        .HasDatabaseName("ix_replicates_season_index_number_sample_no");
+                        .HasDatabaseName("ix_replicates_sample_replicate_no");
 
                     b.ToTable("replicates", (string)null);
                 });

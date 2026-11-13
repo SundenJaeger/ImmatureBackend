@@ -7,9 +7,17 @@ public interface IReplicateRepository
 {
     Task<ReplicateEntity> CreateAsync(ReplicateEntity entity, CancellationToken cancellationToken = default);
 
-    Task<bool> ExistsAsync(string season, string indexNumber, int sampleNo,
+    Task<IReadOnlyList<ReplicateEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<ReplicateEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    
+    Task<IReadOnlyList<ReplicateEntity>> GetBySampleAsync(string season, string indexNumber, int sampleNo,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ReplicateEntity>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<bool> UpdateStatusAsync(Guid id, ReviewStatus status, CancellationToken cancellationToken = default);
+
+    Task<bool> UpdateManualOverrideAsync(Guid id, bool manuallyOverridden,
+        CancellationToken cancellationToken = default);
+    
+    Task<int> AcceptAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 }

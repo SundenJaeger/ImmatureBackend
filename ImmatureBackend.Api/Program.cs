@@ -20,9 +20,12 @@ public class Program
             .AddApiServices(builder.Environment)
             .AddCloudinary(builder.Configuration)
             .AddValidators()
-            .AddExceptionHandlers();
+            .AddExceptionHandlers()
+            .AddHealthChecks();
 
         var app = builder.Build();
+
+        app.MapHealthChecks("health");
 
         app.UseApiPipeline();
 

@@ -14,4 +14,9 @@ public static class ReplicateRules
 
     public const int MinSampleNo = 1;
     public const int MaxSampleNo = 2;
+    
+    public const decimal GoodConfidenceThreshold = 0.80m;
+    public const int RequiredAcceptedReplicates = 2;
+    public const int MaxReplicateNoAttempts = 5;
+    public const string ReplicateNoFormat = "00";
 }

@@ -29,6 +29,20 @@ public sealed record ReplicateListItem
 
     public int? SampleNo { get; set; }
 
+    /// <summary>1-based running number of this photo within its sample.</summary>
+    public int ReplicateNo { get; set; }
+
+    /// <summary>Sample id plus the replicate suffix, for example "S1-02".</summary>
+    public string ReplicateLabel { get; set; } = string.Empty;
+
+    /// <summary>Mean AI box confidence (0-1). Null when the AI returned no boxes with a confidence.</summary>
+    public decimal? Confidence { get; set; }
+
+    /// <summary>"good" when confident enough or manually overridden, otherwise "bad".</summary>
+    public ReplicateQuality Quality { get; set; }
+
+    public bool ManuallyOverridden { get; set; }
+
     /// <summary>When the photo was captured on the device (UTC).</summary>
     public DateTime? CapturedAt { get; set; }
 
@@ -37,10 +51,10 @@ public sealed record ReplicateListItem
 
     /// <summary>Cloudinary public id of the uploaded sample image.</summary>
     public string ImagePublicId { get; set; } = string.Empty;
-    
+
     /// <summary>HTTPS URL of the sample image, loadable directly (no auth header needed).</summary>
     public string ImageSecureUrl { get; set; } = string.Empty;
-    
+
     /// <summary>Seconds from capture to submission, 1 decimal.</summary>
     public decimal ProcessingSeconds { get; set; }
 }

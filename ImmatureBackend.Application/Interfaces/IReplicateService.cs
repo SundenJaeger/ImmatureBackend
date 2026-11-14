@@ -7,6 +7,14 @@ namespace ImmatureBackend.Application.Interfaces;
 public interface IReplicateService
 {
     Task<IReadOnlyList<ReplicateListItem>> GetAllReplicateListItemsAsync(CancellationToken cancellationToken = default);
-    Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request, CancellationToken cancellationToken = default);
-    Task<Result<ReplicateResponse>> CreateAsync(ReplicateRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SampleRecordResponse>> GetAllSampleRecordsAsync(CancellationToken cancellationToken = default);
+
+    Task<Result<UpdateStatusResponse>> UpdateReviewStatus(Guid id, UpdateStatusRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<OverrideResponse>> UpdateManualOverride(Guid id, OverrideRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<ReplicateResponse>>
+        CreateAsync(ReplicateRequest request, CancellationToken cancellationToken = default);
 }

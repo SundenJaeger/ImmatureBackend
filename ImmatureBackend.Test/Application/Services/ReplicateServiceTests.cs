@@ -30,6 +30,11 @@ public class ReplicateServiceTests : IDisposable
 
     public ReplicateServiceTests()
     {
+        _repository
+            .Setup(r => r.GetBySampleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ReplicateEntity>());
+
         _service = new ReplicateService(
             _repository.Object,
             _calculationService.Object,
@@ -188,7 +193,7 @@ public class ReplicateServiceTests : IDisposable
         _imageService
             .Setup(i => i.UploadAsync(request.Image, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(("public-id", "https://cdn.example/image.jpg")));
-        
+
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()))
             .Returns((ReplicateEntity entity, CancellationToken _) =>
@@ -210,7 +215,7 @@ public class ReplicateServiceTests : IDisposable
         _repository.Verify(
             r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         savedEntity.Should().NotBeNull();
         savedEntity!.TechnicianName.Should().Be("Tech1");
         savedEntity.SampleId.Should().Be("S1");
@@ -257,28 +262,7 @@ public class ReplicateServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAsync_SampleAlreadyExists_ReturnsDuplicateSampleErrorWithoutUploadingOrSaving()
-    {
-        var request = CreateRequest();
-
-        _repository
-            .Setup(r => r.ExistsAsync("2026WS", "1234", 2, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        var result = await _service.CreateAsync(request);
-
-        result.Should().BeFailure();
-        result.Errors.Should().ContainSingle(e => e is DuplicateSampleError);
-        _imageService.Verify(
-            i => i.UploadAsync(It.IsAny<Microsoft.AspNetCore.Http.IFormFile>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-        _repository.Verify(
-            r => r.CreateAsync(It.IsAny<ReplicateEntity>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task CreateAsync_UniqueIndexViolationOnSave_ReturnsDuplicateSampleError()
+    public async Task CreateAsync_UniqueIndexViolationOnSave_ReturnsReplicateNumberConflictError()
     {
         var request = CreateRequest();
 
@@ -294,7 +278,7 @@ public class ReplicateServiceTests : IDisposable
         var result = await _service.CreateAsync(request);
 
         result.Should().BeFailure();
-        result.Errors.Should().ContainSingle(e => e is DuplicateSampleError);
+        result.Errors.Should().ContainSingle(e => e is ReplicateNumberConflictError);
     }
 
     [Fact]

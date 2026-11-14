@@ -1,5 +1,6 @@
 ﻿using ImmatureBackend.Application.Constants;
 using ImmatureBackend.Application.Interfaces;
+using ImmatureBackend.Application.Responses;
 using ImmatureBackend.Domain.Enums;
 
 namespace ImmatureBackend.Application.Services;
@@ -38,5 +39,42 @@ public class CalculationService : ICalculationService
         var seconds = (decimal)(submittedAt - capturedAt).TotalSeconds;
 
         return Math.Round(seconds, 1, MidpointRounding.AwayFromZero);
+    }
+
+    public decimal? CalculateConfidence(IReadOnlyCollection<GrainBox> grains)
+    {
+        var confidences = grains
+            .Where(grain => grain.Confidence.HasValue)
+            .Select(grain => (decimal)grain.Confidence!.Value)
+            .ToList();
+
+        if (confidences.Count == 0)
+        {
+            return null;
+        }
+
+        return Math.Round(confidences.Average(), 2, MidpointRounding.AwayFromZero);
+    }
+
+    public ReplicateQuality AssessQuality(decimal? confidence, bool manuallyOverridden)
+    {
+        if (manuallyOverridden)
+        {
+            return ReplicateQuality.Good;
+        }
+
+        return confidence >= ReplicateRules.GoodConfidenceThreshold
+            ? ReplicateQuality.Good
+            : ReplicateQuality.Bad;
+    }
+
+    public decimal CalculateAverageWeight(IReadOnlyCollection<decimal> weights)
+    {
+        if (weights.Count == 0)
+        {
+            return 0;
+        }
+
+        return Math.Round(weights.Average(), 2, MidpointRounding.AwayFromZero);
     }
 }

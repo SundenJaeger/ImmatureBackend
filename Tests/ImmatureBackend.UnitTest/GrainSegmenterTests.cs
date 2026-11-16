@@ -1,7 +1,7 @@
 using ImmatureBackend.Application.Services;
 using SkiaSharp;
 
-namespace ImmatureBackend.Test.Application.Services;
+namespace ImmatureBackend.UnitTest;
 
 public class GrainSegmenterTests
 {

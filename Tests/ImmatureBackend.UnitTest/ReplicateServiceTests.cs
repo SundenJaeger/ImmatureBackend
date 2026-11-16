@@ -15,7 +15,7 @@ using Moq;
 using Newtonsoft.Json;
 using ZiggyCreatures.Caching.Fusion;
 
-namespace ImmatureBackend.Test.Application.Services;
+namespace ImmatureBackend.UnitTest;
 
 public class ReplicateServiceTests : IDisposable
 {
@@ -170,7 +170,7 @@ public class ReplicateServiceTests : IDisposable
             .ReturnsAsync(false);
 
         var result = await _service.UpdateReviewStatus(id, request);
-
+        
         result.Should().BeFailure();
         result.Errors.Should().ContainSingle(e => e is ReplicateNotFoundError);
     }

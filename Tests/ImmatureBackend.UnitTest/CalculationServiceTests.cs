@@ -1,7 +1,7 @@
 using ImmatureBackend.Application.Services;
 using ImmatureBackend.Domain.Enums;
 
-namespace ImmatureBackend.Test.Application.Services;
+namespace ImmatureBackend.UnitTest;
 
 public class CalculationServiceTests
 {

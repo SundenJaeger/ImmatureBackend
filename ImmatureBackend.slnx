@@ -1,7 +1,11 @@
 <Solution>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/ImmatureBackend.IntegrationTest/ImmatureBackend.IntegrationTest.csproj" />
+    <Project Path="Tests/ImmatureBackend.PerformanceTest/ImmatureBackend.PerformanceTest.csproj" />
+    <Project Path="Tests/ImmatureBackend.UnitTest/ImmatureBackend.UnitTest.csproj" />
+  </Folder>
   <Project Path="ImmatureBackend.Api/ImmatureBackend.Api.csproj" />
   <Project Path="ImmatureBackend.Application/ImmatureBackend.Application.csproj" />
   <Project Path="ImmatureBackend.Domain/ImmatureBackend.Domain.csproj" />
   <Project Path="ImmatureBackend.Infrastructure/ImmatureBackend.Infrastructure.csproj" />
-  <Project Path="ImmatureBackend.Test/ImmatureBackend.Test.csproj" />
 </Solution>

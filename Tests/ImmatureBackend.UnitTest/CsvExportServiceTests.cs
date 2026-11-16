@@ -7,7 +7,7 @@ using ImmatureBackend.Application.Services;
 using ImmatureBackend.Domain.Enums;
 using Moq;
 
-namespace ImmatureBackend.Test.Application.Services;
+namespace ImmatureBackend.UnitTest;
 
 public class CsvExportServiceTests
 {

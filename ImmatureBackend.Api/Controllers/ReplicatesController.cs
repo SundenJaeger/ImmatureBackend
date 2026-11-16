@@ -37,7 +37,7 @@ public class ReplicatesController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status422UnprocessableEntity)]
-    // [Authorize(Policy = "Capture")]
+    [Authorize(Policy = "Capture")]
     [HttpPost("replicate")]
     public async Task<IActionResult> Replicate([FromForm] ReplicateRequest model, CancellationToken cancellationToken)
     {
@@ -102,7 +102,7 @@ public class ReplicatesController(
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "text/csv")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    // [Authorize(Policy = "Dashboard")]
+    [Authorize(Policy = "Dashboard")]
     [HttpGet("replicates/export")]
     public async Task<IActionResult> ExportCsv(CancellationToken cancellationToken)
     {

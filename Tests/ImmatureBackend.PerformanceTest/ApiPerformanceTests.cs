@@ -53,6 +53,14 @@ public class ApiPerformanceTests(ApiFixture api)
         AssertHealthy(stats, maxP95Ms: 1000);
     }
 
+    [Fact]
+    public void GetGrade_Handles50RequestsPerSecond()
+    {
+        var stats = RunScenario("get_grade", ratePerSecond: 50, () => _capture.GetAsync("/api/grade?weight=0.47"));
+
+        AssertHealthy(stats, maxP95Ms: 200);
+    }
+
     private async Task SeedAsync()
     {
         for (var i = 0; i < SeedCount; i++)

@@ -10,6 +10,8 @@ them to a review dashboard. For each replicate it computes the immature percenta
   higher are returned.
 - **Replicate Storage:** Saves the image, predicted boxes, confirmed boxes, and weight in PostgreSQL.
 - **Automatic Grading:** Percentage is computed from the weight against a 30 g sample, then mapped to a grade.
+- **Grade Preview:** `GET /api/grade?weight=0.47` returns the percentage and grade for a weight without saving
+  anything, using the same calculation as replicate submission. Requires the same sign-in as the capture endpoints.
 - **Replicates per Sample:** Several photos can be submitted for the same sample (season + index number + sample no).
   Each gets a replicate number (-01, -02, -03). `GET /api/samples` returns one record per sample with all its photos.
 - **Good / Bad Photos:** A photo is `good` when its mean AI confidence reaches the threshold, or it was manually

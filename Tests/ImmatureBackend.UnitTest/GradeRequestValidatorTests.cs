@@ -18,10 +18,15 @@ public class GradeRequestValidatorTests
         Assert.Single(result.Errors);
     }
 
+    public static TheoryData<decimal> InvalidWeights => new()
+    {
+        0.0m,
+        -0.01m,
+        -5.0m
+    };
+
     [Theory]
-    [InlineData(0.0)]
-    [InlineData(-0.01)]
-    [InlineData(-5.0)]
+    [MemberData(nameof(InvalidWeights))]
     public void Validate_ZeroOrNegativeWeight_FailsWithGreaterThanZeroMessage(decimal weight)
     {
         var result = _validator.TestValidate(new GradeRequest { Weight = weight });
@@ -30,10 +35,15 @@ public class GradeRequestValidatorTests
             .WithErrorMessage("Weight must be greater than zero.");
     }
 
+    public static TheoryData<decimal> ExcessiveWeights => new()
+    {
+        30.01m,
+        31.0m,
+        1000.0m
+    };
+
     [Theory]
-    [InlineData(30.01)]
-    [InlineData(31.0)]
-    [InlineData(1000.0)]
+    [MemberData(nameof(ExcessiveWeights))]
     public void Validate_WeightAboveThirtyGrams_FailsWithMaximumMessage(decimal weight)
     {
         var result = _validator.TestValidate(new GradeRequest { Weight = weight });
@@ -42,11 +52,16 @@ public class GradeRequestValidatorTests
             .WithErrorMessage("Weight cannot be more than 30 g.");
     }
 
+    public static TheoryData<decimal> ValidWeights => new()
+    {
+        0.01m,
+        0.47m,
+        15.0m,
+        30.0m
+    };
+
     [Theory]
-    [InlineData(0.01)]
-    [InlineData(0.47)]
-    [InlineData(15.0)]
-    [InlineData(30.0)]
+    [MemberData(nameof(ValidWeights))]
     public void Validate_WeightWithinRange_Passes(decimal weight)
     {
         var result = _validator.TestValidate(new GradeRequest { Weight = weight });

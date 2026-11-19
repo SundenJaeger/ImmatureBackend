@@ -2,7 +2,7 @@
 
 # Requirements
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [.NET 11 SDK](https://dotnet.microsoft.com/download)
 - A PostgreSQL database
 - [Docker](https://docs.docker.com/get-started/get-docker/), running (required by the integration and performance tests, which start a temporary PostgreSQL container)
 - [EF Core tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) (`dotnet tool install --global dotnet-ef`)

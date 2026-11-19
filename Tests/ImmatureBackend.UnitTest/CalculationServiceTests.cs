@@ -23,26 +23,36 @@ public class CalculationServiceTests
         Assert.Equal(0m, result);
     }
 
+    public static TheoryData<decimal, decimal> PercentageTestData => new()
+    {
+        { 0.01m, 0.0m },
+        { 0.57m, 1.9m },
+        { 0.6m, 2.0m },
+        { 1.5m, 5.0m },
+        { 3.0m, 10.0m },
+        { 4.5m, 15.0m },
+        { 4.53m, 15.1m },
+        { 30.0m, 100.0m }
+    };
+
     [Theory]
-    [InlineData(0.01, 0.0)]
-    [InlineData(0.57, 1.9)]
-    [InlineData(0.6, 2.0)]
-    [InlineData(1.5, 5.0)]
-    [InlineData(3.0, 10.0)]
-    [InlineData(4.5, 15.0)]
-    [InlineData(4.53, 15.1)]
-    [InlineData(30.0, 100.0)]
+    [MemberData(nameof(PercentageTestData))]
     public void CalculatePercentage_ReturnsPercentageOfThirtyGramsToOneDecimal(decimal weight, decimal expected)
     {
         var result = _service.CalculatePercentage(weight);
 
         Assert.Equal(expected, result);
     }
-    
+
+    public static TheoryData<decimal, decimal> MidpointTestData => new()
+    {
+        { 0.045m, 0.2m },
+        { 0.075m, 0.3m },
+        { 0.135m, 0.5m }
+    };
+
     [Theory]
-    [InlineData(0.045, 0.2)]
-    [InlineData(0.075, 0.3)]
-    [InlineData(0.135, 0.5)]
+    [MemberData(nameof(MidpointTestData))]
     public void CalculatePercentage_MidpointRoundsAwayFromZero(decimal weight, decimal expected)
     {
         var result = _service.CalculatePercentage(weight);
@@ -50,22 +60,27 @@ public class CalculationServiceTests
         Assert.Equal(expected, result);
     }
 
+    public static TheoryData<decimal, Grade> GradeTestData => new()
+    {
+        { 0.0m, Grade.Pr },
+        { 1.9m, Grade.Pr },
+        { 1.99m, Grade.Pr },
+        { 2.0m, Grade.G1 },
+        { 3.5m, Grade.G1 },
+        { 5.0m, Grade.G1 },
+        { 5.01m, Grade.G2 },
+        { 7.5m, Grade.G2 },
+        { 10.0m, Grade.G2 },
+        { 10.01m, Grade.G3 },
+        { 12.5m, Grade.G3 },
+        { 15.0m, Grade.G3 },
+        { 15.01m, Grade.NotClassified },
+        { 15.1m, Grade.NotClassified },
+        { 100.0m, Grade.NotClassified }
+    };
+
     [Theory]
-    [InlineData(0.0, Grade.Pr)]
-    [InlineData(1.9, Grade.Pr)]
-    [InlineData(1.99, Grade.Pr)]
-    [InlineData(2.0, Grade.G1)]
-    [InlineData(3.5, Grade.G1)]
-    [InlineData(5.0, Grade.G1)]
-    [InlineData(5.01, Grade.G2)]
-    [InlineData(7.5, Grade.G2)]
-    [InlineData(10.0, Grade.G2)]
-    [InlineData(10.01, Grade.G3)]
-    [InlineData(12.5, Grade.G3)]
-    [InlineData(15.0, Grade.G3)]
-    [InlineData(15.01, Grade.NotClassified)]
-    [InlineData(15.1, Grade.NotClassified)]
-    [InlineData(100.0, Grade.NotClassified)]
+    [MemberData(nameof(GradeTestData))]
     public void AssignGrade_ReturnsCorrectGradeAtEachBoundary(decimal percentage, Grade expectedGrade)
     {
         var result = _service.AssignGrade(percentage);
@@ -88,14 +103,19 @@ public class CalculationServiceTests
         Assert.NotEqual(Grade.G2, _service.AssignGrade(5.0m));
     }
 
+    public static TheoryData<decimal, bool> IsTrueOnlyBelowTwoPercentTestData => new()
+    {
+        { 0.0m, true },
+        { 1.9m, true },
+        { 1.99m, true },
+        { 2.0m, false },
+        { 5.0m, false },
+        { 15.0m, false },
+        { 15.1m, false }
+    };
+
     [Theory]
-    [InlineData(0.0, true)]
-    [InlineData(1.9, true)]
-    [InlineData(1.99, true)]
-    [InlineData(2.0, false)]
-    [InlineData(5.0, false)]
-    [InlineData(15.0, false)]
-    [InlineData(15.1, false)]
+    [MemberData(nameof(IsTrueOnlyBelowTwoPercentTestData))]
     public void MeetsRecommendedValue_IsTrueOnlyBelowTwoPercent(decimal percentage, bool expected)
     {
         Assert.Equal(expected, _service.MeetsRecommendedValue(percentage));

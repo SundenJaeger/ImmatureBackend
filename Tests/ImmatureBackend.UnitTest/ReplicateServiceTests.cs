@@ -170,7 +170,7 @@ public class ReplicateServiceTests : IDisposable
             .ReturnsAsync(false);
 
         var result = await _service.UpdateReviewStatus(id, request);
-        
+
         result.Should().BeFailure();
         result.Errors.Should().ContainSingle(e => e is ReplicateNotFoundError);
     }
@@ -354,5 +354,69 @@ public class ReplicateServiceTests : IDisposable
         await _service.GetAllReplicateListItemsAsync();
 
         _repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    private async Task<SampleRecordResponse> GetSingleSampleAsync(params ReviewStatus[] photoStatuses)
+    {
+        var entities = photoStatuses
+            .Select((status, index) => CreateEntity(e =>
+            {
+                e.ReplicateNo = index + 1;
+                e.ReviewStatus = status;
+                e.CreatedAt = DateTime.UtcNow;
+            }))
+            .ToList();
+
+        _calculationService
+            .Setup(c => c.CalculateAverageWeight(It.IsAny<IReadOnlyCollection<decimal>>()))
+            .Returns(10m);
+        _repository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+
+        return (await _service.GetAllSampleRecordsAsync()).Single();
+    }
+
+    [Theory]
+    [InlineData(new[] { ReviewStatus.Accepted }, ReviewStatus.Accepted)]
+    [InlineData(new[] { ReviewStatus.Review }, ReviewStatus.Review)]
+    [InlineData(new[] { ReviewStatus.Rejected }, ReviewStatus.Review)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Accepted }, ReviewStatus.Accepted)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Review }, ReviewStatus.Review)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Retraining }, ReviewStatus.Review)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Rejected }, ReviewStatus.Accepted)]
+    [InlineData(new[] { ReviewStatus.Review, ReviewStatus.Rejected }, ReviewStatus.Review)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Accepted, ReviewStatus.Review }, ReviewStatus.Accepted)]
+    [InlineData(new[] { ReviewStatus.Accepted, ReviewStatus.Review, ReviewStatus.Review }, ReviewStatus.Review)]
+    public async Task GetAllSampleRecordsAsync_SampleStatus_FollowsTheAcceptedPhotos(ReviewStatus[] photos,
+        ReviewStatus expected)
+    {
+        var sample = await GetSingleSampleAsync(photos);
+
+        sample.Status.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task GetAllSampleRecordsAsync_SingleAcceptedPhoto_ReportsItsOwnResultAsTheAverage()
+    {
+        _calculationService.Setup(c => c.CalculatePercentage(10m)).Returns(33.3m);
+        _calculationService.Setup(c => c.AssignGrade(33.3m)).Returns(Grade.NotClassified);
+        _calculationService.Setup(c => c.MeetsRecommendedValue(33.3m)).Returns(false);
+
+        var sample = await GetSingleSampleAsync(ReviewStatus.Accepted);
+
+        sample.Status.Should().Be(ReviewStatus.Accepted);
+        sample.AverageWeight.Should().Be(10m);
+        sample.AveragePercentage.Should().Be(33.3m);
+        sample.AverageGrade.Should().Be(Grade.NotClassified);
+        sample.MeetsRecommendedValue.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAllSampleRecordsAsync_SampleInReview_HasNoAverage()
+    {
+        var sample = await GetSingleSampleAsync(ReviewStatus.Accepted, ReviewStatus.Review);
+
+        sample.AverageWeight.Should().BeNull();
+        sample.AveragePercentage.Should().BeNull();
+        sample.AverageGrade.Should().BeNull();
     }
 }

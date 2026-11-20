@@ -83,7 +83,7 @@ public class DashboardApiTests(ApiFixture api)
         Assert.Equal("review", sample["status"]!.GetValue<string>());
         Assert.Equal(2, sample["replicates"]!.AsArray().Count);
     }
-    
+
     [Fact]
     public async Task UpdateStatus_ChangesStatusAndPersistsIt()
     {
@@ -98,6 +98,66 @@ public class DashboardApiTests(ApiFixture api)
         var list = await (await _dashboard.GetAsync("/api/replicates")).ReadJsonAsync();
         var item = list.AsArray().Single(r => r!["id"]!.GetValue<string>() == id)!;
         Assert.Equal("rejected", item["reviewStatus"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStatus_AcceptingTheOnlyPhotoOfASample_AcceptsTheSample()
+    {
+        var form = new ReplicateForm { Confidence = 0.5 };
+        var photo = await _capture.SubmitAsync(form);
+
+        await SetStatusAsync(photo, "accepted");
+
+        var sample = await GetSampleAsync(form.SampleId);
+        Assert.Equal("accepted", sample["status"]!.GetValue<string>());
+        Assert.Equal(0.9m, sample["averageWeight"]!.GetValue<decimal>());
+        Assert.Equal("G1", sample["averageGrade"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStatus_AcceptingEveryPhotoOfASample_AcceptsTheSampleOnlyAfterTheLastOne()
+    {
+        var form = new ReplicateForm { Confidence = 0.5 };
+        var first = await _capture.SubmitAsync(form);
+        var second = await _capture.SubmitAsync(form);
+
+        await SetStatusAsync(first, "accepted");
+        var afterFirst = await GetSampleAsync(form.SampleId);
+        Assert.Equal("review", afterFirst["status"]!.GetValue<string>());
+        Assert.Null(afterFirst["averageWeight"]);
+
+        await SetStatusAsync(second, "accepted");
+        var afterSecond = await GetSampleAsync(form.SampleId);
+        Assert.Equal("accepted", afterSecond["status"]!.GetValue<string>());
+        Assert.Equal(0.9m, afterSecond["averageWeight"]!.GetValue<decimal>());
+    }
+
+    [Fact]
+    public async Task UpdateStatus_RejectedPhotoDoesNotBlockTheRestOfTheSample()
+    {
+        var form = new ReplicateForm { Confidence = 0.5 };
+        var rejected = await _capture.SubmitAsync(form);
+        var accepted = await _capture.SubmitAsync(form);
+
+        await SetStatusAsync(rejected, "rejected");
+        await SetStatusAsync(accepted, "accepted");
+
+        var sample = await GetSampleAsync(form.SampleId);
+        Assert.Equal("accepted", sample["status"]!.GetValue<string>());
+        Assert.Equal(0.9m, sample["averageWeight"]!.GetValue<decimal>());
+    }
+
+    [Fact]
+    public async Task UpdateStatus_RejectingTheOnlyPhoto_LeavesTheSampleInReview()
+    {
+        var form = new ReplicateForm { Confidence = 0.5 };
+        var photo = await _capture.SubmitAsync(form);
+
+        await SetStatusAsync(photo, "rejected");
+
+        var sample = await GetSampleAsync(form.SampleId);
+        Assert.Equal("review", sample["status"]!.GetValue<string>());
+        Assert.Null(sample["averageWeight"]);
     }
 
     [Fact]
@@ -179,5 +239,20 @@ public class DashboardApiTests(ApiFixture api)
         var csv = await response.Content.ReadAsStringAsync();
         Assert.Contains("sample_id", csv);
         Assert.Contains(form.SampleId, csv);
+    }
+
+    private async Task SetStatusAsync(System.Text.Json.Nodes.JsonNode photo, string status)
+    {
+        var id = photo["id"]!.GetValue<string>();
+        var response = await _dashboard.PatchJsonAsync($"/api/replicates/{id}/status", new { status });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private async Task<System.Text.Json.Nodes.JsonNode> GetSampleAsync(string sampleId)
+    {
+        var samples = await (await _dashboard.GetAsync("/api/samples")).ReadJsonAsync();
+
+        return samples.AsArray().Single(s => s!["sampleId"]!.GetValue<string>() == sampleId)!;
     }
 }

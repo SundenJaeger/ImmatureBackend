@@ -65,7 +65,7 @@ public class ReplicateService(
 
             return Result.Fail(new ReplicateNotFoundError(id));
         }
-        
+
         var entity = await repository.GetByIdAsync(id, cancellationToken);
         if (entity is not null)
         {
@@ -104,7 +104,7 @@ public class ReplicateService(
         }
 
         await AutoAcceptSampleAsync(entity.Season, entity.IndexNumber, entity.SampleNo, cancellationToken);
-        
+
         entity = await repository.GetByIdAsync(id, cancellationToken) ?? entity;
 
         await cache.RemoveAsync(AllReplicatesCacheKey, token: cancellationToken);
@@ -222,7 +222,7 @@ public class ReplicateService(
             ReviewStatus = accepted.Contains(saved.Id) ? ReviewStatus.Accepted : saved.ReviewStatus
         };
     }
-    
+
     private async Task<IReadOnlyCollection<Guid>> AutoAcceptSampleAsync(string season, string indexNumber,
         int sampleNo, CancellationToken cancellationToken)
     {
@@ -301,7 +301,10 @@ public class ReplicateService(
     {
         var first = replicates[0];
         var accepted = replicates.Where(item => item.ReviewStatus == ReviewStatus.Accepted).ToList();
-        var isAccepted = accepted.Count >= ReplicateRules.RequiredAcceptedReplicates;
+
+        var usableCount = replicates.Count(item => item.ReviewStatus != ReviewStatus.Rejected);
+        var isAccepted = accepted.Count > 0
+                         && accepted.Count >= Math.Min(ReplicateRules.RequiredAcceptedReplicates, usableCount);
 
         decimal? averageWeight = null;
         decimal? averagePercentage = null;
